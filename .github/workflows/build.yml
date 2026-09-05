@@ -33,7 +33,20 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Publish error log to ci-error branch
+        if: failure()
+        run: |
+          tail -c 200000 build.log > errtail.txt || echo "no build.log" > errtail.txt
+          git config user.email "ci@pocketvm.local"
+          git config user.name "pocketvm-ci"
+          git checkout -q -B ci-error
+          git add -f errtail.txt
+          git commit -qm "ci error tail (run $GITHUB_RUN_ID)" || true
+          git push -q -f origin ci-error
 
       - name: Restore previous gofile upload metadata
         id: restore

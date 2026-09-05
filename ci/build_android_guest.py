@@ -250,7 +250,8 @@ def extract_layer(blob, dest):
                     else:
                         os.remove(target)
                 continue
-            tf.extract(member, dest, set_attrs=False)
+            # keep tar modes (exec bits) — script runs as root so chown works
+            tf.extract(member, dest)
 
 
 # ---------------------------------------------------------------- pack

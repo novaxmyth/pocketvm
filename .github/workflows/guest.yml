@@ -29,4 +29,17 @@ jobs:
             gcc-aarch64-linux-gnu bc bison flex libssl-dev libelf-dev kmod
 
       - name: Build Android 12 guest image
-        run: python3 ci/build_android_guest.py
+        run: |
+          set -o pipefail
+          sudo -E bash -c 'python3 ci/build_android_guest.py 2>&1 | tee guest.log'
+
+      - name: Publish error log to ci-error-guest branch
+        if: failure()
+        run: |
+          tail -c 200000 guest.log > guesterr.txt 2>/dev/null || echo "no guest.log" > guesterr.txt
+          git config user.email "ci@pocketvm.local"
+          git config user.name "pocketvm-ci"
+          git checkout -q -B ci-error-guest
+          git add -f guesterr.txt
+          git commit -qm "guest ci error tail (run $GITHUB_RUN_ID)" || true
+          git push -q -f origin ci-error-guest
