@@ -20,6 +20,7 @@ import com.antidaze.pocketvm.data.VmRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /** "New VM" dialog: name, RAM/CPU, and a boot source (import, download, none). */
 class CreateVmDialogFragment : DialogFragment() {
@@ -79,6 +80,15 @@ class CreateVmDialogFragment : DialogFragment() {
         pick.visibility = if (source.checkedRadioButtonId == R.id.src_import) View.VISIBLE else View.GONE
     }
 
+    private fun postProgress(text: String) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            dlProgress.visibility = View.VISIBLE
+            dlProgress.text = text
+        }
+    }
+
+    private fun cfgDir(id: String): File = File(repo.vmsRoot, id)
+
     private fun onCreateClicked(dlg: AlertDialog, name: EditText, ram: Spinner, cpu: Spinner, source: RadioGroup) {
         val vmName = name.text.toString().trim()
         if (vmName.isEmpty()) {
@@ -129,6 +139,28 @@ class CreateVmDialogFragment : DialogFragment() {
                         }
                         cfg.systemImagePath = dest.absolutePath
                         cfg.systemIsCdrom = true
+                        repo.saveConfig(cfg)
+                    }
+                    R.id.src_android -> {
+                        val info = com.antidaze.pocketvm.guest.GuestImages.latestAndroidAsset()
+                            ?: throw IllegalStateException(ctx.getString(R.string.create_no_android_image))
+                        val zip = File(cfgDir(cfg.id), "guest.zip")
+                        com.antidaze.pocketvm.guest.GuestImages.download(info.first, zip) { read, total ->
+                            val pct = if (total > 0) (read * 100 / total) else 0
+                            postProgress(ctx.getString(R.string.create_downloading, pct))
+                        }
+                        postProgress(ctx.getString(R.string.create_unpacking))
+                        val vmDir = cfgDir(cfg.id)
+                        com.antidaze.pocketvm.guest.GuestImages.unzip(zip, vmDir)
+                        val gz = File(vmDir, "rootfs.img.gz")
+                        val raw = File(vmDir, "rootfs.img")
+                        com.antidaze.pocketvm.guest.GuestImages.gunzip(gz, raw)
+                        gz.delete(); zip.delete()
+                        cfg.guest = "android"
+                        cfg.systemImagePath = raw.absolutePath
+                        cfg.systemIsCdrom = false
+                        cfg.kernelPath = File(vmDir, "vmlinuz").absolutePath
+                        cfg.kernelCmdline = "console=ttyAMA0 root=/dev/vda1 rw init=/lib/systemd/systemd"
                         repo.saveConfig(cfg)
                     }
                 }

@@ -132,7 +132,12 @@ class QemuEngine(
         }
 
         a += listOf("-device", "virtio-net-device,netdev=net0")
-        a += listOf("-netdev", "user,id=net0")
+        if (cfg.guest == "android") {
+            // Guest adbd (5555) reachable on the host for the adb/scrcpy client.
+            a += listOf("-netdev", "user,id=net0,hostfwd=tcp:127.0.0.1:5556-:5555")
+        } else {
+            a += listOf("-netdev", "user,id=net0")
+        }
         a += listOf("-device", "ramfb")
         a += listOf("-audiodev", "none,id=noaudio")
         a += listOf("-serial", "file:${repo.serialLogFile(cfg.id).absolutePath}")

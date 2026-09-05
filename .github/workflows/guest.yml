@@ -1,0 +1,32 @@
+name: Build Android 12 guest image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ci/build_android_guest.py'
+      - '.github/workflows/guest.yml'
+
+concurrency:
+  group: guest-image
+  cancel-in-progress: false
+
+jobs:
+  guest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static debootstrap \
+            gcc-aarch64-linux-gnu bc bison flex libssl-dev libelf-dev kmod
+
+      - name: Build Android 12 guest image
+        run: python3 ci/build_android_guest.py

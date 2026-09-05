@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() {
                 Intent(this, ConsoleActivity::class.java)
                     .putExtra(ConsoleActivity.EXTRA_VM_ID, cfg.id)
                     .putExtra(ConsoleActivity.EXTRA_VM_NAME, cfg.name)
+                    .putExtra(ConsoleActivity.EXTRA_VM_GUEST, cfg.guest)
             )
         }
         adapter.setRepo(repo)
@@ -40,6 +41,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<FloatingActionButton>(R.id.fab_add).setOnClickListener {
             CreateVmDialogFragment().show(supportFragmentManager, "create")
+        }
+
+        findViewById<TextView>(R.id.btn_diagnostics).setOnClickListener {
+            startActivity(android.content.Intent(this, DiagnosticsActivity::class.java))
         }
 
         if (!RuntimeInstaller.isArm64()) {

@@ -15,7 +15,9 @@ data class VmConfig(
     var systemIsCdrom: Boolean = false,
     /** Optional direct kernel boot (e.g. AOSP/Cuttlefish images). Overrides BIOS. */
     var kernelPath: String? = null,
-    var kernelCmdline: String? = null
+    var kernelCmdline: String? = null,
+    /** "linux" = VNC console, "android" = adb + scrcpy console. */
+    var guest: String = "linux"
 ) {
     @Throws(JSONException::class)
     fun toJson(): JSONObject = JSONObject().apply {
@@ -27,6 +29,7 @@ data class VmConfig(
         put("systemIsCdrom", systemIsCdrom)
         put("kernelPath", kernelPath ?: "")
         put("kernelCmdline", kernelCmdline ?: "")
+        put("guest", guest)
     }
 
     companion object {
@@ -38,7 +41,8 @@ data class VmConfig(
             systemImagePath = o.optString("systemImagePath", "").ifEmpty { null },
             systemIsCdrom = o.optBoolean("systemIsCdrom", false),
             kernelPath = o.optString("kernelPath", "").ifEmpty { null },
-            kernelCmdline = o.optString("kernelCmdline", "").ifEmpty { null }
+            kernelCmdline = o.optString("kernelCmdline", "").ifEmpty { null },
+            guest = o.optString("guest", "linux")
         )
     }
 }

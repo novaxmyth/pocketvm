@@ -35,6 +35,9 @@ class VncView @JvmOverloads constructor(
     private var ctrlLatched = false
     private var altLatched = false
 
+    /** When set, touch events are forwarded (Android/scrcpy mode) instead of VNC. */
+    var touchDelegate: ((action: Int, x: Int, y: Int) -> Unit)? = null
+
     init {
         holder.addCallback(this)
         setFocusable(true)
@@ -86,26 +89,30 @@ class VncView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        val c = client ?: return false
-        if (bitmap == null) return false
+        if (bitmap == null && touchDelegate == null) return false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 pressed = true
-                sendPointerAt(event, 1)
+                dispatchTouch(event, event.actionMasked)
             }
-            MotionEvent.ACTION_MOVE -> if (pressed) sendPointerAt(event, 1)
+            MotionEvent.ACTION_MOVE -> if (pressed) dispatchTouch(event, MotionEvent.ACTION_MOVE)
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_UP -> {
                 pressed = false
-                sendPointerAt(event, 0)
+                dispatchTouch(event, MotionEvent.ACTION_UP)
             }
         }
         return true
     }
 
-    private fun sendPointerAt(event: MotionEvent, buttons: Int) {
+    private fun dispatchTouch(event: MotionEvent, action: Int) {
         val x = ((event.x - dstRect.left) / scale).toInt()
         val y = ((event.y - dstRect.top) / scale).toInt()
-        client?.sendPointer(x, y, buttons)
+        val delegate = touchDelegate
+        if (delegate != null) {
+            delegate(action, x, y)
+        } else {
+            client?.sendPointer(x, y, if (action == MotionEvent.ACTION_UP) 0 else 1)
+        }
     }
 
     fun sendKeySym(keysym: Int) {

@@ -68,6 +68,12 @@
                 android:text="@string/create_src_download" />
 
             <RadioButton
+                android:id="@+id/src_android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/create_src_android" />
+
+            <RadioButton
                 android:id="@+id/src_none"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

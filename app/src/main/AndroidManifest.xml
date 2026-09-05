@@ -26,6 +26,10 @@
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize" />
 
+        <activity
+            android:name=".ui.DiagnosticsActivity"
+            android:exported="false" />
+
         <service
             android:name=".engine.VmForegroundService"
             android:exported="false" />

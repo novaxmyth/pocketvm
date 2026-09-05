@@ -25,10 +25,13 @@
     <string name="create_source_hint">Boot source</string>
     <string name="create_src_import">Import image file (.iso / .img / .qcow2)</string>
     <string name="create_src_download">Download Alpine Linux test ISO (~70 MB)</string>
+    <string name="create_src_android">Download Android 12 guest image (~1.3 GB)</string>
     <string name="create_src_none">No disk yet (add later)</string>
     <string name="create_pick">Choose file…</string>
     <string name="create_picked">Selected: %1$s</string>
     <string name="create_downloading">Downloading… %1$d%%</string>
+    <string name="create_unpacking">Unpacking image (one-time)…</string>
+    <string name="create_no_android_image">Android guest image not published yet — try again later</string>
     <string name="create_ok">Create</string>
     <string name="create_name_required">Enter a name</string>
     <string name="create_no_file">Choose an image file first</string>
@@ -42,9 +45,18 @@
 
     <string name="console_status_starting">Starting VM…</string>
     <string name="console_start_failed">VM failed to start: %1$s</string>
+    <string name="console_android_booting">Waiting for Android to boot (first boot takes several minutes)…</string>
+    <string name="console_android_noserver">scrcpy server missing from app bundle</string>
     <string name="btn_keyboard">Keys</string>
     <string name="btn_fullscreen">Fullscreen</string>
     <string name="btn_stop">Power</string>
+    <string name="btn_back">Back</string>
+    <string name="btn_home">Home</string>
+
+    <string name="diag_title">Diagnostics</string>
+    <string name="diag_copy">Copy report</string>
+    <string name="diag_copied">Diagnostics copied to clipboard</string>
+    <string name="main_diagnostics">Diagnostics</string>
     <string name="console_disconnected">Display disconnected: %1$s</string>
     <string name="console_exited">VM exited (code %1$d)</string>
     <string name="console_vm_missing">This VM no longer exists</string>
