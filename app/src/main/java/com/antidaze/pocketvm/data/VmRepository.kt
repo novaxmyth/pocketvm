@@ -91,7 +91,7 @@ class VmRepository(context: Context) {
 
     /** Streams a remote file (e.g. the Alpine test ISO) into the VM dir. */
     fun downloadImage(id: String, url: String, fileName: String, onProgress: (read: Long, total: Long) -> Unit): File =
-        downloadTo(url, vmDir(id), fileName, onProgress)
+        downloadTo(url, vmDir(id), fileName) { read, total -> onProgress(read, total) }
 
     /**
      * Downloads into an arbitrary dir (used for the shared image store).
@@ -102,8 +102,8 @@ class VmRepository(context: Context) {
         url: String,
         dir: File,
         fileName: String,
-        onProgress: (read: Long, total: Long) -> Unit,
-        maxAttempts: Int = 60
+        maxAttempts: Int = 60,
+        onProgress: (read: Long, total: Long) -> Unit
     ): File {
         val dest = File(dir, fileName)
         val tmp = File(dir, "$fileName.part")
