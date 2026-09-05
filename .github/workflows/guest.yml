@@ -65,11 +65,12 @@ jobs:
         run: |
           TAG="android12-v${{ github.run_number }}"
           ZIP=$(ls out-guest/*.zip | head -1)
-          echo "publishing $ZIP as $TAG"
-          gh release create "$TAG" "$ZIP" \
+          cp "$ZIP" out-guest/pocketvm-android12-arm64.zip
+          echo "publishing out-guest/pocketvm-android12-arm64.zip as $TAG"
+          gh release create "$TAG" out-guest/pocketvm-android12-arm64.zip \
             --title "Android 12 guest image (v${{ github.run_number }})" \
             --notes "Prebuilt Android 12 (redroid) arm64 guest for PocketVM: rootfs.ext4 (gz) + Linux kernel. Import from the app: New VM → Download Android 12 guest image." \
-            || gh release upload "$TAG" "$ZIP" --clobber
+            || gh release upload "$TAG" out-guest/pocketvm-android12-arm64.zip --clobber
 
       - name: Publish build link to ci-latest-guest branch
         if: always()

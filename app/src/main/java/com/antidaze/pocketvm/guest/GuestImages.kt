@@ -13,22 +13,21 @@ object GuestImages {
     const val REPO = "novaxmyth/pocketvm"
     const val ASSET_PREFIX = "pocketvm-android12"
 
-    /** Returns (download URL, byte size) of the latest Android guest image asset. */
+    /** Fixed-name asset URL — uses github.com redirects, never the api.github.com host. */
+    const val FIXED_ASSET_URL =
+        "https://github.com/$REPO/releases/latest/download/pocketvm-android12-arm64.zip"
+
+    /** Returns (download URL, size) — HEAD-checks the redirect endpoint. */
     fun latestAndroidAsset(): Pair<String, Long>? {
-        val conn = URL("https://api.github.com/repos/$REPO/releases/latest").openConnection() as HttpURLConnection
+        val conn = URL(FIXED_ASSET_URL).openConnection() as HttpURLConnection
+        conn.requestMethod = "HEAD"
+        conn.instanceFollowRedirects = true
         conn.setRequestProperty("User-Agent", "pocketvm")
-        conn.connectTimeout = 30_000
-        conn.readTimeout = 60_000
+        conn.connectTimeout = 20_000
+        conn.readTimeout = 30_000
         try {
-            if (conn.responseCode != 200) return null
-            val json = JSONObject(conn.inputStream.bufferedReader().readText())
-            val assets = json.optJSONArray("assets") ?: return null
-            for (i in 0 until assets.length()) {
-                val a = assets.getJSONObject(i)
-                val name = a.optString("name", "")
-                if (name.startsWith(ASSET_PREFIX) && name.endsWith(".zip")) {
-                    return a.getString("browser_download_url") to a.optLong("size", 0L)
-                }
+            if (conn.responseCode in 200..299) {
+                return FIXED_ASSET_URL to conn.contentLengthLong
             }
             return null
         } finally {
