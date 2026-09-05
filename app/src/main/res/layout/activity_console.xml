@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <com.antidaze.pocketvm.vnc.VncView
+        android:id="@+id/vnc_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/console_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="12dp"
+        android:background="@color/console_status_bg"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:text="@string/console_status_starting"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/console_status_bg"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp">
+
+            <Button
+                android:id="@+id/btn_esc"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:text="Esc"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_tab"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:minWidth="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:text="Tab"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_ctrl"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:minWidth="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:text="Ctrl"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_alt"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:minWidth="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:text="Alt"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_keyboard"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:minWidth="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:text="@string/btn_keyboard"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_fullscreen"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:minWidth="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:text="@string/btn_fullscreen"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_stop"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:minWidth="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:text="@string/btn_stop"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+</FrameLayout>

@@ -1,0 +1,44 @@
+package com.antidaze.pocketvm.data
+
+import org.json.JSONException
+import org.json.JSONObject
+
+/** Persistent description of one virtual machine. */
+data class VmConfig(
+    val id: String,
+    var name: String,
+    var ramMb: Int = 1024,
+    var cpus: Int = 2,
+    /** Absolute path to system disk image (.qcow2, .img raw, or .iso). */
+    var systemImagePath: String? = null,
+    /** True when systemImagePath is a bootable installer ISO (attached read-only). */
+    var systemIsCdrom: Boolean = false,
+    /** Optional direct kernel boot (e.g. AOSP/Cuttlefish images). Overrides BIOS. */
+    var kernelPath: String? = null,
+    var kernelCmdline: String? = null
+) {
+    @Throws(JSONException::class)
+    fun toJson(): JSONObject = JSONObject().apply {
+        put("id", id)
+        put("name", name)
+        put("ramMb", ramMb)
+        put("cpus", cpus)
+        put("systemImagePath", systemImagePath ?: "")
+        put("systemIsCdrom", systemIsCdrom)
+        put("kernelPath", kernelPath ?: "")
+        put("kernelCmdline", kernelCmdline ?: "")
+    }
+
+    companion object {
+        fun fromJson(o: JSONObject): VmConfig = VmConfig(
+            id = o.getString("id"),
+            name = o.getString("name"),
+            ramMb = o.optInt("ramMb", 1024),
+            cpus = o.optInt("cpus", 2),
+            systemImagePath = o.optString("systemImagePath", "").ifEmpty { null },
+            systemIsCdrom = o.optBoolean("systemIsCdrom", false),
+            kernelPath = o.optString("kernelPath", "").ifEmpty { null },
+            kernelCmdline = o.optString("kernelCmdline", "").ifEmpty { null }
+        )
+    }
+}

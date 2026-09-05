@@ -1,0 +1,156 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Bundle QEMU engine
+        run: python3 ci/fetch_engine.py
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Restore previous gofile upload metadata
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ci/last-upload.json
+          key: gofile-upload-state
+          fail-on-cache-miss: false
+
+      - name: Purge previous gofile upload
+        shell: bash
+        run: |
+          if [ -f ci/last-upload.json ]; then
+            CONTENT_ID=$(jq -r '.contentId // empty' ci/last-upload.json)
+            GUEST_TOKEN=$(jq -r '.guestToken // empty' ci/last-upload.json)
+            if [ -n "$CONTENT_ID" ] && [ -n "$GUEST_TOKEN" ]; then
+              echo "Purging previous gofile upload: $CONTENT_ID"
+              curl -s -X DELETE "https://api.gofile.io/contents/$CONTENT_ID" \
+                -H "Authorization: Bearer $GUEST_TOKEN" || echo "purge failed (ignored)"
+            fi
+          else
+            echo "No previous upload metadata found."
+          fi
+
+      - name: Upload APK to gofile.io
+        id: upload
+        shell: bash
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/*.apk out/ 2>/dev/null || true
+          ls -la out/
+
+          for APK in out/*.apk; do
+            [ -f "$APK" ] || continue
+            NAME=$(basename "$APK")
+            SIZE=$(du -h "$APK" | cut -f1)
+            echo "Uploading $NAME ($SIZE) ..."
+            RESP=$(curl -s -X POST -F "file=@$APK" https://upload.gofile.io/uploadfile)
+            echo "gofile response for $NAME: $RESP"
+            STATUS=$(echo "$RESP" | jq -r '.status // "error"')
+            if [ "$STATUS" != "ok" ]; then
+              echo "::error::gofile upload failed for $NAME: $RESP"
+              exit 1
+            fi
+            DOWNLOAD=$(echo "$RESP" | jq -r '.data.downloadPage // .data.directLink // ""')
+            CONTENT_ID=$(echo "$RESP" | jq -r '.data.fileId // ""')
+            TOK=$(echo "$RESP" | jq -r '.data.guestToken // ""')
+            echo "download_link=$DOWNLOAD" >> "$GITHUB_OUTPUT"
+            echo "contentId=$CONTENT_ID" >> "$GITHUB_OUTPUT"
+            echo "guestToken=$TOK" >> "$GITHUB_OUTPUT"
+            echo "file_size=$SIZE" >> "$GITHUB_OUTPUT"
+            echo "uploaded=$NAME" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Save upload metadata for next purge
+        shell: bash
+        run: |
+          mkdir -p ci
+          cat > ci/last-upload.json << EOF
+          {
+            "contentId": "${{ steps.upload.outputs.contentId }}",
+            "guestToken": "${{ steps.upload.outputs.guestToken }}",
+            "builtAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+      - name: Cache upload metadata
+        uses: actions/cache/save@v4
+        with:
+          path: ci/last-upload.json
+          key: gofile-upload-state-${{ github.run_id }}
+
+      - name: Job summary
+        shell: bash
+        run: |
+          {
+            echo "## PocketVM build"
+            echo ""
+            echo "- APK: ${{ steps.upload.outputs.uploaded }} (${{ steps.upload.outputs.file_size }})"
+            echo "- Download: ${{ steps.upload.outputs.download_link }}"
+            echo "- Commit: ${{ github.sha }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  smoke:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 20
+    steps:
+      - name: Install QEMU on runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-arm qemu-efi-aarch64
+
+      - name: Download Alpine test ISO
+        run: |
+          curl -fL --retry 3 -o alpine.iso \
+            https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/aarch64/alpine-virt-3.20.9-aarch64.iso
+          ls -la alpine.iso
+
+      - name: Boot test (TCG, same machine/board as the app)
+        run: |
+          timeout 420 qemu-system-aarch64 \
+            -machine virt,highmem=on -cpu max -accel tcg,thread=multi \
+            -smp 2 -m 512 \
+            -drive file=alpine.iso,format=raw,if=none,id=cd0,readonly=on \
+            -device virtio-blk-device,drive=cd0 \
+            -device virtio-keyboard-device -device virtio-tablet-device \
+            -device ramfb -audiodev none,id=noaudio \
+            -serial file:serial.log -monitor none -msg timestamp=on \
+            -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd &
+          QPID=$!
+          sleep 400 || true
+          kill $QPID 2>/dev/null || true
+          echo "--- serial.log (tail) ---"
+          tail -40 serial.log || echo "(no serial output)"
+          if grep -q -i -e "Welcome to Alpine" -e "login:" serial.log; then
+            echo "BOOT OK"
+          else
+            echo "BOOT INCONCLUSIVE (serial console may not be enabled by this ISO)"
+          fi

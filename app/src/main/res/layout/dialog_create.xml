@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:paddingTop="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/create_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/create_name_hint"
+            android:importantForAutofill="no"
+            android:inputType="text" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Spinner
+                android:id="@+id/create_ram"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:entries="@array/ram_options"
+                android:prompt="@string/create_ram_hint" />
+
+            <Spinner
+                android:id="@+id/create_cpu"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_weight="1"
+                android:entries="@array/cpu_options"
+                android:prompt="@string/create_cpu_hint" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/create_source_hint"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/create_source"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/src_import"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/create_src_import" />
+
+            <RadioButton
+                android:id="@+id/src_download"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/create_src_download" />
+
+            <RadioButton
+                android:id="@+id/src_none"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/create_src_none" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/create_pick"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_pick" />
+
+        <TextView
+            android:id="@+id/create_picked"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/create_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PocketVM</string>
+    <string name="main_subtitle">Full-system virtual machines on your phone</string>
+
+    <string name="empty_state">No virtual machines yet.\nTap + to create one.</string>
+    <string name="abi_warning">This device does not report an arm64 CPU — the engine requires arm64-v8a.</string>
+
+    <string name="vm_start">Start</string>
+    <string name="vm_open">Open console</string>
+    <string name="vm_delete">Delete</string>
+    <string name="vm_subtitle">%1$s · %2$d vCPU · %3$s</string>
+    <string name="state_running">running</string>
+    <string name="state_stopped">stopped</string>
+
+    <string name="delete_title">Delete VM?</string>
+    <string name="delete_message">“%1$s” and all of its disk data will be permanently removed.</string>
+    <string name="delete_yes">Delete</string>
+    <string name="delete_running_block">Stop the VM before deleting it.</string>
+
+    <string name="create_title">New virtual machine</string>
+    <string name="create_name_hint">Name</string>
+    <string name="create_ram_hint">Memory</string>
+    <string name="create_cpu_hint">CPUs</string>
+    <string name="create_source_hint">Boot source</string>
+    <string name="create_src_import">Import image file (.iso / .img / .qcow2)</string>
+    <string name="create_src_download">Download Alpine Linux test ISO (~70 MB)</string>
+    <string name="create_src_none">No disk yet (add later)</string>
+    <string name="create_pick">Choose file…</string>
+    <string name="create_picked">Selected: %1$s</string>
+    <string name="create_downloading">Downloading… %1$d%%</string>
+    <string name="create_ok">Create</string>
+    <string name="create_name_required">Enter a name</string>
+    <string name="create_no_file">Choose an image file first</string>
+
+    <string name="engine_install_title">Installing engine</string>
+    <string name="engine_install_message">Extracting the QEMU virtualization engine…</string>
+    <string name="engine_install_failed">Engine install failed</string>
+
+    <string name="no_arm64_title">Unsupported device</string>
+    <string name="no_arm64_message">PocketVM currently ships an arm64 engine and needs an arm64-v8a device.</string>
+
+    <string name="console_status_starting">Starting VM…</string>
+    <string name="console_start_failed">VM failed to start: %1$s</string>
+    <string name="btn_keyboard">Keys</string>
+    <string name="btn_fullscreen">Fullscreen</string>
+    <string name="btn_stop">Power</string>
+    <string name="console_disconnected">Display disconnected: %1$s</string>
+    <string name="console_exited">VM exited (code %1$d)</string>
+    <string name="console_vm_missing">This VM no longer exists</string>
+    <string name="console_stopping">Stopping VM…</string>
+
+    <string name="stop_title">Stop VM?</string>
+    <string name="stop_message">“%1$s” will be powered off. Unsaved state in the guest is lost.</string>
+    <string name="stop_yes">Power off</string>
+
+    <string name="notif_title">PocketVM running — %1$s</string>
+    <string name="notif_text">Virtual machine is running in the background. Tap to return.</string>
+
+    <string-array name="ram_options">
+        <item>512 MB</item>
+        <item>1 GB</item>
+        <item>2 GB</item>
+        <item>3 GB</item>
+        <item>4 GB</item>
+    </string-array>
+    <string-array name="cpu_options">
+        <item>1</item>
+        <item>2</item>
+        <item>4</item>
+        <item>6</item>
+    </string-array>
+</resources>
