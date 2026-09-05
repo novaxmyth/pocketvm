@@ -21,7 +21,10 @@ data class VmConfig(
     /** True while a background download is being fetched for this VM. */
     var preparing: Boolean = false,
     /** Last non-fatal note (e.g. failed download) shown in the VM list. */
-    var statusNote: String = ""
+    var statusNote: String = "",
+    /** Download job descriptor, persisted so an app update can re-enqueue it. */
+    var pendingKind: String = "",
+    var pendingUrl: String = ""
 ) {
     @Throws(JSONException::class)
     fun toJson(): JSONObject = JSONObject().apply {
@@ -36,6 +39,8 @@ data class VmConfig(
         put("guest", guest)
         put("preparing", preparing)
         put("statusNote", statusNote)
+        put("pendingKind", pendingKind)
+        put("pendingUrl", pendingUrl)
     }
 
     companion object {
@@ -50,7 +55,9 @@ data class VmConfig(
             kernelCmdline = o.optString("kernelCmdline", "").ifEmpty { null },
             guest = o.optString("guest", "linux"),
             preparing = o.optBoolean("preparing", false),
-            statusNote = o.optString("statusNote", "")
+            statusNote = o.optString("statusNote", ""),
+            pendingKind = o.optString("pendingKind", ""),
+            pendingUrl = o.optString("pendingUrl", "")
         )
     }
 }

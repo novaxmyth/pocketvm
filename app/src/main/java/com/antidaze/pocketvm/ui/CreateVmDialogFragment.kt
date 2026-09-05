@@ -86,6 +86,8 @@ class CreateVmDialogFragment : DialogFragment() {
     private fun enqueueDownload(dlg: AlertDialog, cfg: com.antidaze.pocketvm.data.VmConfig, kind: String, url: String, label: String, ctx: android.content.Context) {
         cfg.preparing = true
         cfg.statusNote = ""
+        cfg.pendingKind = kind
+        cfg.pendingUrl = url
         repo.saveConfig(cfg)
         DownloadService.start(ctx, cfg.id, kind, url, label)
     }

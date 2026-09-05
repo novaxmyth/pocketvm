@@ -53,6 +53,9 @@ class MainActivity : AppCompatActivity() {
         if (!RuntimeInstaller.isArm64()) {
             findViewById<TextView>(R.id.abi_warning).visibility = View.VISIBLE
         }
+
+        // Downloads interrupted by an app update/restart resume automatically.
+        com.antidaze.pocketvm.engine.DownloadService.recoverPending(this)
     }
 
     override fun onResume() {

@@ -93,40 +93,70 @@ class VmRepository(context: Context) {
     fun downloadImage(id: String, url: String, fileName: String, onProgress: (read: Long, total: Long) -> Unit): File =
         downloadTo(url, vmDir(id), fileName, onProgress)
 
-    /** Downloads into an arbitrary dir (used for the shared image store). */
-    fun downloadTo(url: String, dir: File, fileName: String, onProgress: (read: Long, total: Long) -> Unit): File {
+    /**
+     * Downloads into an arbitrary dir (used for the shared image store).
+     * Resumable: keeps .part across attempts with HTTP Range, retries on
+     * stalls/timeouts so flaky mobile networks can finish multi-GB files.
+     */
+    fun downloadTo(
+        url: String,
+        dir: File,
+        fileName: String,
+        onProgress: (read: Long, total: Long) -> Unit,
+        maxAttempts: Int = 60
+    ): File {
         val dest = File(dir, fileName)
         val tmp = File(dir, "$fileName.part")
-        val conn = (java.net.URL(url).openConnection() as java.net.HttpURLConnection).apply {
-            connectTimeout = 30_000
-            readTimeout = 60_000
-            instanceFollowRedirects = true
-        }
-        try {
-            conn.connect()
-            if (conn.responseCode !in 200..299) throw IllegalStateException("HTTP ${conn.responseCode}")
-            val total = conn.contentLengthLong
-            conn.inputStream.use { input ->
-                tmp.outputStream().use { output ->
-                    val buf = ByteArray(1 shl 19)
-                    var read = 0L
-                    while (true) {
-                        val n = input.read(buf)
-                        if (n < 0) break
-                        output.write(buf, 0, n)
-                        read += n
+        dir.mkdirs()
+        var attempts = 0
+        while (true) {
+            attempts++
+            val have = if (tmp.exists()) tmp.length() else 0L
+            val conn = (java.net.URL(url).openConnection() as java.net.HttpURLConnection).apply {
+                connectTimeout = 20_000
+                readTimeout = 20_000
+                instanceFollowRedirects = true
+                if (have > 0) setRequestProperty("Range", "bytes=$have-")
+            }
+            var resumed = false
+            try {
+                conn.connect()
+                val code = conn.responseCode
+                resumed = code == 206 && have > 0
+                if (code !in 200..299) throw IllegalStateException("HTTP $code")
+                val total = if (resumed) have + conn.contentLengthLong else conn.contentLengthLong
+                val out = java.io.FileOutputStream(tmp, resumed)
+                conn.inputStream.use { input ->
+                    out.use { output ->
+                        val buf = ByteArray(1 shl 19)
+                        var read = if (resumed) have else 0L
+                        var lastMarked = read
+                        while (true) {
+                            val n = input.read(buf)
+                            if (n < 0) break
+                            output.write(buf, 0, n)
+                            read += n
+                            if (read - lastMarked >= (1 shl 21)) {
+                                lastMarked = read
+                                onProgress(read, total)
+                            }
+                        }
                         onProgress(read, total)
                     }
                 }
+                if (!tmp.renameTo(dest)) {
+                    tmp.copyTo(dest, overwrite = true)
+                    tmp.delete()
+                }
+                return dest
+            } catch (e: Exception) {
+                if (attempts >= maxAttempts) throw e
+                try { Thread.sleep(3000) } catch (x: InterruptedException) { throw e }
+                // loop and resume from wherever tmp got to
+            } finally {
+                conn.disconnect()
             }
-        } finally {
-            conn.disconnect()
         }
-        if (!tmp.renameTo(dest)) {
-            tmp.copyTo(dest, overwrite = true)
-            tmp.delete()
-        }
-        return dest
     }
 
     fun serialLogFile(id: String): File = File(vmDir(id), "serial.log")

@@ -29,9 +29,16 @@ class DownloadService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) return START_NOT_STICKY
         val vmId = intent.getStringExtra(EXTRA_VM_ID) ?: return START_NOT_STICKY
-        val kind = intent.getStringExtra(EXTRA_KIND) ?: KIND_ISO
-        val label = intent.getStringExtra(EXTRA_LABEL) ?: "download"
-        val url = intent.getStringExtra(EXTRA_URL) ?: ""
+        // Persisted job descriptor wins over intent extras so an app update
+        // can re-enqueue the same download.
+        val repo0 = VmRepository(this)
+        val cfgAtStart = repo0.listVms().firstOrNull { it.id == vmId }
+        val kind = cfgAtStart?.pendingKind?.ifEmpty { null }
+            ?: intent.getStringExtra(EXTRA_KIND) ?: KIND_ISO
+        val label = intent.getStringExtra(EXTRA_LABEL)
+            ?: cfgAtStart?.name ?: "download"
+        val url = cfgAtStart?.pendingUrl?.ifEmpty { null }
+            ?: intent.getStringExtra(EXTRA_URL) ?: ""
 
         val notifyId = NOTIFY_ID_BASE + (vmId.hashCode().mod(1000))
         createChannel()
@@ -67,9 +74,14 @@ class DownloadService : Service() {
                     if (!baseImg.isFile || !kernel.isFile) {
                         val realUrl = GuestImages.latestAndroidAsset()?.first
                             ?: throw IllegalStateException("Android guest image is not available yet")
+                        var lastPctStep = -1
                         val zip = repo.downloadTo(realUrl, shared, "guest.zip") { read, total ->
                             val pct = if (total > 0) (read * 100 / total).toInt() else 0
                             notify(notifyId, progressNotification(label, pct, total, false))
+                            if (pct / 5 > lastPctStep) {
+                                lastPctStep = pct / 5
+                                note(vmId, "downloading $pct%")
+                            }
                         }
                         notify(notifyId, progressNotification(label, 100, 0, true))
                         GuestImages.unzip(zip, shared)
@@ -183,6 +195,19 @@ class DownloadService : Service() {
                 .putExtra(EXTRA_URL, url)
                 .putExtra(EXTRA_LABEL, label)
             if (Build.VERSION.SDK_INT >= 26) context.startForegroundService(i) else context.startService(i)
+        }
+
+        /** Re-enqueues interrupted downloads after an app update/restart. */
+        fun recoverPending(context: Context) {
+            val repo = VmRepository(context)
+            for (cfg in repo.listVms()) {
+                if (!cfg.preparing) continue
+                val kind = cfg.pendingKind.ifEmpty {
+                    // Old jobs without a recorded kind: guess from what's on disk.
+                    if (File(repo.imagesRoot, "android12").exists()) KIND_ANDROID else KIND_ISO
+                }
+                start(context, cfg.id, kind, cfg.pendingUrl, cfg.name)
+            }
         }
     }
 }

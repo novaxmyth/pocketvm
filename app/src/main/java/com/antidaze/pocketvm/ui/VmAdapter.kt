@@ -85,8 +85,16 @@ class VmAdapter(
             }
         )
         h.start.text = ctx.getString(if (running) R.string.vm_open else R.string.vm_start)
+        // Can't boot a VM whose image is still downloading (that just lands
+        // in a diskless UEFI shell).
+        h.start.isEnabled = !cfg.preparing
+        h.start.alpha = if (cfg.preparing) 0.45f else 1f
 
         h.start.setOnClickListener {
+            if (cfg.preparing) {
+                Toast.makeText(ctx, R.string.toast_wait_download, Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
             if (!RuntimeInstaller.isArm64()) {
                 AlertDialog.Builder(ctx)
                     .setTitle(R.string.no_arm64_title)

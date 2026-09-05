@@ -17,6 +17,7 @@
     <string name="state_ready">ready</string>
 
     <string name="toast_download_bg">Downloading in background — you can leave the app. See the notification.</string>
+    <string name="toast_wait_download">Still downloading — wait for the “Ready” notification.</string>
     <string name="notif_dl_title">Downloading %1$s</string>
     <string name="notif_dl_done">Ready: %1$s — your VM can start now.</string>
     <string name="notif_dl_failed">Download failed: %1$s</string>
