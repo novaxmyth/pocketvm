@@ -12,6 +12,9 @@ concurrency:
   group: guest-image
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   guest:
     runs-on: ubuntu-latest

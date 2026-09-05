@@ -40,25 +40,29 @@ open-source stack for this:
 - **Background**: a foreground service + wake/wifi locks keep the VM running
   with the screen off, like VPhoneOS.
 
-## Status — v0.1.0
+## Status — v0.2.0
 
 What works today:
 
-- VM manager (create, name, RAM/CPU selection, delete)
-- Import your own disk image (.iso/.img/.qcow2) or download the bundled
-  Alpine Linux aarch64 test ISO and install it to the VM's data disk
-- Boot under UEFI, console display over VNC, touch + Esc/Tab/Ctrl/Alt input,
-  soft keyboard, background operation with notification
+- **Android 12 guest (arm64)**: CI builds a real Android 12 guest image — a
+  Debian 12 rootfs with a binder-enabled Linux 5.15 kernel plus the redroid
+  Android 12 (AOSP, Apache-2.0) arm64 userspace, started as a PID-namespaced
+  init. The app downloads the bundle from GitHub releases, boots it under
+  QEMU (TCG), reaches the guest's adb over slirp port-forwarding, and streams
+  the Android UI via the scrcpy protocol (H.264 → MediaCodec) with touch and
+  key injection. This is the same architecture cloud-phone backends use.
+- **Linux guests**: import any arm64 disk/ISO or the bundled Alpine test ISO,
+  console over the built-in VNC client (Raw + CopyRect + DesktopSize).
+- VM manager (create, RAM/CPU, delete), background operation with foreground
+  service + wake/wifi locks, diagnostics screen (ABI/RAM/engine/logs) for
+  reporting problems.
 
-Roadmap (in order):
+Google services in the Android guest: the base image ships pure AOSP userspace
+(no GApps — bundling them isn't something we can distribute).microG / GApps
+injection is on the roadmap as an opt-in personal build flag.
 
-1. **Android 12 guest image pipeline** — CI job assembling an AOSP
-   (`aosp_cf_arm64_phone`, Android 12/13) guest image bootable via direct
-   kernel, with microG (open-source Google Play services) preinstalled.
-   GApps-flavored images stay a "bring your own image" option for personal use.
-2. Hextile/zrle encodings + host-GPU-accelerated rendering pipeline.
-3. Shared folder (guest ⇄ phone) over slirp host forwarding.
-4. Snapshots, multiple parallel VMs, guest audio.
+Roadmap: GApps/microG opt-in image, guest audio, shared folder, snapshots,
+guest hardware GPU (virgl/gfxstream), multi-VM.
 
 ## Honest performance note
 
