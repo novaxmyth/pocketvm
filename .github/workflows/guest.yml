@@ -58,6 +58,32 @@ jobs:
           path: /mnt/pocketvm-guest
           key: guest-kernel-${{ github.sha }}
 
+      - name: Publish release asset
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="android12-v${{ github.run_number }}"
+          ZIP=$(ls out-guest/*.zip | head -1)
+          echo "publishing $ZIP as $TAG"
+          gh release create "$TAG" "$ZIP" \
+            --title "Android 12 guest image (v${{ github.run_number }})" \
+            --notes "Prebuilt Android 12 (redroid) arm64 guest for PocketVM: rootfs.ext4 (gz) + Linux kernel. Import from the app: New VM → Download Android 12 guest image." \
+            || gh release upload "$TAG" "$ZIP" --clobber
+
+      - name: Publish build link to ci-latest-guest branch
+        if: always()
+        run: |
+          { echo "guest_release=https://github.com/${{ github.repository }}/releases/tag/android12-v${{ github.run_number }}";
+            echo "asset=$(ls out-guest/*.zip 2>/dev/null | head -1)";
+            echo "built=$(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > guestlink.txt
+          git config user.email "ci@pocketvm.local"
+          git config user.name "pocketvm-ci"
+          git checkout -q -B ci-latest-guest
+          git add -f guestlink.txt
+          git commit -qm "guest build link (run ${{ github.run_number }})" || true
+          git push -q -f origin ci-latest-guest
+
       - name: Publish error log to ci-error-guest branch
         if: failure()
         run: |
