@@ -31,10 +31,32 @@ jobs:
           sudo apt-get install -y qemu-user-static debootstrap \
             gcc-aarch64-linux-gnu bc bison flex libssl-dev libelf-dev kmod
 
+      - name: Restore guest work cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /mnt/pocketvm-guest
+          key: guest-kernel-${{ github.sha }}
+          restore-keys: guest-kernel-
+
       - name: Build Android 12 guest image
         run: |
           set -o pipefail
-          sudo -E bash -c 'python3 ci/build_android_guest.py 2>&1 | tee guest.log'
+          sudo -E GITHUB_TOKEN="$GITHUB_TOKEN" GITHUB_REPOSITORY="$GITHUB_REPOSITORY" \
+            GITHUB_RUN_NUMBER="$GITHUB_RUN_NUMBER" \
+            bash -c 'python3 ci/build_android_guest.py 2>&1 | tee guest.log'
+
+      - name: Prune work dir before cache save
+        if: always()
+        run: |
+          sudo rm -rf /mnt/pocketvm-guest/blobs /mnt/pocketvm-guest/rootfs.img /mnt/pocketvm-guest/rootfs.img.gz || true
+          du -sh /mnt/pocketvm-guest || true
+
+      - name: Save guest work cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: /mnt/pocketvm-guest
+          key: guest-kernel-${{ github.sha }}
 
       - name: Publish error log to ci-error-guest branch
         if: failure()

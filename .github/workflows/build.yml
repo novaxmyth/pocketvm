@@ -133,6 +133,21 @@ jobs:
             echo "- Commit: ${{ github.sha }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Publish build link to ci-latest branch
+        if: success()
+        run: |
+          {
+            echo "apk=${{ steps.upload.outputs.download_link }}"
+            echo "commit=${{ github.sha }}"
+            echo "built=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > link.txt
+          git config user.email "ci@pocketvm.local"
+          git config user.name "pocketvm-ci"
+          git checkout -q -B ci-latest
+          git add -f link.txt
+          git commit -qm "latest build link (run $GITHUB_RUN_ID)" || true
+          git push -q -f origin ci-latest
+
   smoke:
     runs-on: ubuntu-latest
     continue-on-error: true
