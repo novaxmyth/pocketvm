@@ -48,7 +48,8 @@ jobs:
       - name: Prune work dir before cache save
         if: always()
         run: |
-          sudo rm -rf /mnt/pocketvm-guest/blobs /mnt/pocketvm-guest/rootfs.img /mnt/pocketvm-guest/rootfs.img.gz || true
+          # Keep blobs: re-downloading redroid layers each run is slow and flaky.
+          sudo rm -rf /mnt/pocketvm-guest/rootfs.img /mnt/pocketvm-guest/rootfs.img.gz /mnt/pocketvm-guest/out-guest || true
           du -sh /mnt/pocketvm-guest || true
 
       - name: Save guest work cache
