@@ -83,8 +83,8 @@ def build_kernel(work):
         sh(f"tar -xf {tar} -C {work}")
 
     env = dict(os.environ, ARCH="arm64", CROSS_COMPILE="aarch64-linux-gnu-")
-    def mk(target, *extra):
-        subprocess.run(["make", "-C", kdir, *extra, target], env=env, check=True)
+    def mk(*args):
+        subprocess.run(["make", "-C", kdir, *args], env=env, check=True)
 
     mk("defconfig")
     cfg = [
