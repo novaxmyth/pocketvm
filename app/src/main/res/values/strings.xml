@@ -46,6 +46,7 @@
     <string name="console_status_starting">Starting VM…</string>
     <string name="console_start_failed">VM failed to start: %1$s</string>
     <string name="console_android_booting">Waiting for Android to boot (first boot takes several minutes)…</string>
+    <string name="console_engine_died">VM failed to start — see Diagnostics. Last engine output:</string>
     <string name="console_android_noserver">scrcpy server missing from app bundle</string>
     <string name="btn_keyboard">Keys</string>
     <string name="btn_fullscreen">Fullscreen</string>

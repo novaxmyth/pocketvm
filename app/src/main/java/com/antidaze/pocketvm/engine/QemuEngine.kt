@@ -119,12 +119,14 @@ class QemuEngine(
 
         if (system != null && File(system).isFile) {
             val fmt = if (system.endsWith(".qcow2")) "qcow2" else "raw"
+            // The -device must reference the drive id we actually created above.
+            val driveId = if (cfg.systemIsCdrom) "cd0" else "hd0"
             if (cfg.systemIsCdrom) {
                 a += listOf("-drive", "file=$system,format=raw,if=none,id=cd0,readonly=on")
             } else {
                 a += listOf("-drive", "file=$system,format=$fmt,if=none,id=hd0")
             }
-            a += listOf("-device", "virtio-blk-device,drive=cd0")
+            a += listOf("-device", "virtio-blk-device,drive=$driveId")
         }
         if (data.isFile) {
             a += listOf("-drive", "file=${data.absolutePath},format=raw,if=none,id=hd1")

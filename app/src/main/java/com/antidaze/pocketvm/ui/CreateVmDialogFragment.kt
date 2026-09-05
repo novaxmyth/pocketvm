@@ -56,7 +56,11 @@ class CreateVmDialogFragment : DialogFragment() {
         pickedFile = v.findViewById(R.id.create_picked)
         dlProgress = v.findViewById(R.id.create_progress)
 
-        source.setOnCheckedChangeListener { _, _ -> syncPickVisibility(source, pick) }
+        source.setOnCheckedChangeListener { _, checked ->
+            syncPickVisibility(source, pick)
+            // Android 12 guests need at least 2 GB to run system_server.
+            if (checked == R.id.src_android) ram.setSelection(2)
+        }
         pick.setOnClickListener {
             pickFile.launch(arrayOf("*/*"))
         }

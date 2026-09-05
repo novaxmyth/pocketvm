@@ -1,6 +1,14 @@
+import java.util.Base64
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
 }
 
 android {
@@ -14,12 +22,28 @@ android {
         minSdk = 26
         targetSdk = 28
         versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
-        versionName = "0.2.0"
+        versionName = "0.2.1"
     }
+
+    signingConfigs {
+        create("release") {
+            val ksFile = rootProject.file(
+                keystoreProps.getProperty("storeFile", "keystore/pocketvm-release.keystore")
+            ).takeIf { it.exists() }
+            if (ksFile != null) {
+                storeFile = ksFile
+                storePassword = keystoreProps.getProperty("storePassword", "")
+                keyAlias = keystoreProps.getProperty("keyAlias", "")
+                keyPassword = keystoreProps.getProperty("keyPassword", "")
+            }
+        }
+    }
+    val hasReleaseSigning = signingConfigs.getByName("release").storeFile != null
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("release")
         }
     }
 

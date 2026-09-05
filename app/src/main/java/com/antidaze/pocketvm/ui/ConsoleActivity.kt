@@ -164,9 +164,17 @@ class ConsoleActivity : AppCompatActivity() {
                 postStatus(getString(R.string.console_android_noserver))
                 return@thread
             }
-            val deadline = System.currentTimeMillis() + 8 * 60 * 1000L
+            val deadline = System.currentTimeMillis() + 10 * 60 * 1000L
             while (System.currentTimeMillis() < deadline && !stopping) {
                 val e = engine ?: break
+                if (!e.running) {
+                    // QEMU died — surface the last error from its log instead of
+                    // pretending to "wait for boot" forever.
+                    val log = repo.engineLogFile(vmId)
+                    val last = try { log.readLines().takeLast(12) } catch (x: Exception) { emptyList() }
+                    postStatus(getString(R.string.console_engine_died) + "\n" + last.joinToString("\n"))
+                    return@thread
+                }
                 if (e.vncPort <= 0) { Thread.sleep(1000); continue }
                 postStatus(getString(R.string.console_android_booting))
                 val adbClient = AdbClient("127.0.0.1", 5556)

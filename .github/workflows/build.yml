@@ -35,10 +35,20 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build debug APK
+      - name: Build signed release APK
         run: |
           set -o pipefail
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Fallback to debug APK if release came out unsigned
+        run: |
+          if ls app/build/outputs/apk/release/*-unsigned.apk >/dev/null 2>&1; then
+            echo "Release APK is unsigned; building debug instead"
+            ./gradlew :app:assembleDebug --no-daemon
+            echo "APK_DIR=app/build/outputs/apk/debug" >> "$GITHUB_ENV"
+          else
+            echo "APK_DIR=app/build/outputs/apk/release" >> "$GITHUB_ENV"
+          fi
 
       - name: Publish error log to ci-error branch
         if: failure()
@@ -79,7 +89,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/*.apk out/ 2>/dev/null || true
+          cp "$APK_DIR"/*.apk out/ 2>/dev/null || true
           ls -la out/
 
           for APK in out/*.apk; do
