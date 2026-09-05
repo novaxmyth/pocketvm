@@ -330,8 +330,9 @@ def main():
     root = debootstrap(WORK)
     configure_rootfs(root, kver, WORK)
     redroid_pull(WORK, root)
-    zip_path = pack(WORK, kver, image)
-    publish(zip_path)
+    pack(WORK, kver, image)
+    # Publishing is done by the workflow's `gh release` step — uploads via
+    # urllib kept dying on flaky TLS mid-transfer and failing the whole job.
     print("DONE")
 
 
