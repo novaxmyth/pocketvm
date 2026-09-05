@@ -80,7 +80,7 @@ class ConsoleActivity : AppCompatActivity() {
         }
         engine = e
         if (!e.running) {
-            statusText.text = getString(R.string.console_starting)
+            statusText.text = getString(R.string.console_status_starting)
             try {
                 e.start(applicationContext)
                 VmForegroundService.start(this, vmId, vmName)

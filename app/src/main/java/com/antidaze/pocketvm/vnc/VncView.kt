@@ -2,17 +2,18 @@ package com.antidaze.pocketvm.vnc
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.view.BaseInputConnection
-import android.view.InputConnection
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
+import android.view.inputmethod.InputMethodManager
 
 /**
  * SurfaceView that renders the remote framebuffer and forwards touch and key
@@ -134,9 +135,10 @@ class VncView @JvmOverloads constructor(
         return true
     }
 
-    fun toggleKeyboard(): Boolean {
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-        return imm.showSoftInput(this, 0) || imm.toggleSoftInput(0, 0)
+    fun toggleKeyboard() {
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val shown = imm.showSoftInput(this, 0)
+        if (!shown) imm.toggleSoftInput(0, 0)
     }
 
     override fun onCheckIsTextEditor(): Boolean = true

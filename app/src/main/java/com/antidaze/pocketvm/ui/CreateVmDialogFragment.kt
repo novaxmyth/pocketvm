@@ -26,11 +26,11 @@ class CreateVmDialogFragment : DialogFragment() {
 
     private var pendingUri: Uri? = null
     private var pendingName: String? = null
+    private var submitting = false
 
     private lateinit var repo: VmRepository
     private lateinit var pickedFile: TextView
     private lateinit var dlProgress: TextView
-    private lateinit var createButton: Button
 
     private val pickFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
@@ -54,7 +54,6 @@ class CreateVmDialogFragment : DialogFragment() {
         val pick = v.findViewById<Button>(R.id.create_pick)
         pickedFile = v.findViewById(R.id.create_picked)
         dlProgress = v.findViewById(R.id.create_progress)
-        createButton = v.findViewById(R.id.create_ok)
 
         source.setOnCheckedChangeListener { _, _ -> syncPickVisibility(source, pick) }
         pick.setOnClickListener {
@@ -86,6 +85,9 @@ class CreateVmDialogFragment : DialogFragment() {
             name.error = getString(R.string.create_name_required)
             return
         }
+        if (submitting) return
+        submitting = true
+        dlg.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
         val ramSel = ram.selectedItem as String
         val ramMb = if (ramSel.endsWith(" GB")) {
             ramSel.removeSuffix(" GB").toInt() * 1024
@@ -95,7 +97,6 @@ class CreateVmDialogFragment : DialogFragment() {
         val cpus = (cpu.selectedItem as String).toInt()
         val mode = source.checkedRadioButtonId
 
-        createButton.isEnabled = false
         val ctx = requireContext()
         val activity = requireActivity() as MainActivity
 
@@ -137,7 +138,8 @@ class CreateVmDialogFragment : DialogFragment() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    createButton.isEnabled = true
+                    submitting = false
+                    dlg.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
                     Toast.makeText(ctx, e.message ?: "failed", Toast.LENGTH_LONG).show()
                 }
             }

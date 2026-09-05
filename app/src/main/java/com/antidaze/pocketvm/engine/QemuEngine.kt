@@ -106,10 +106,10 @@ class QemuEngine(
         a += listOf("-m", cfg.ramMb.coerceIn(128, 8192).toString())
         a += listOf("-name", "pocketvm-${cfg.id}")
 
-        if (!cfg.kernelPath.isNullOrEmpty()) {
-            a += listOf("-kernel", cfg.kernelPath)
-            if (!cfg.kernelCmdline.isNullOrEmpty()) a += listOf("-append", cfg.kernelCmdline)
-        } else {
+        cfg.kernelPath?.let { kp ->
+            a += listOf("-kernel", kp)
+            cfg.kernelCmdline?.let { cmd -> a += listOf("-append", cmd) }
+        } ?: run {
             a += listOf("-bios", File(RuntimeInstaller.shareDir(context), "QEMU_EFI.fd").absolutePath)
         }
 
