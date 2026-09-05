@@ -99,6 +99,8 @@ class QemuEngine(
         val system = cfg.systemImagePath
 
         a += "-no-user-config"
+        // Data dir for keymaps/firmware lookups (VNC dies without its keymaps).
+        a += listOf("-L", RuntimeInstaller.shareDir(context).absolutePath)
         a += listOf("-machine", "virt,highmem=on")
         a += listOf("-cpu", "max")
         a += listOf("-accel", "tcg,thread=multi")

@@ -166,6 +166,14 @@ def main():
     shutil.copy2(bin_src, os.path.join(out_bin, "qemu-system-aarch64"))
     os.chmod(os.path.join(out_bin, "qemu-system-aarch64"), 0o755)
 
+    # VNC needs its keyboard keymaps at startup (default layout en-us).
+    km_src = os.path.join(pkg_usr, "share/qemu/keymaps")
+    if os.path.isdir(km_src):
+        shutil.copytree(km_src, os.path.join(out_share, "qemu/keymaps"))
+        print(f"bundled {len(os.listdir(os.path.join(out_share, 'qemu/keymaps')))} keymaps")
+    else:
+        print("WARNING: no keymaps dir in qemu packages")
+
     # UEFI firmware (needed to boot ISOs/disk images without a bundled kernel).
     efi = os.path.join(CACHE, "efi")
     shutil.rmtree(efi, ignore_errors=True)
