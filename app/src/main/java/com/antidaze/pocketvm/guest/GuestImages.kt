@@ -17,18 +17,32 @@ object GuestImages {
     const val FIXED_ASSET_URL =
         "https://github.com/$REPO/releases/latest/download/pocketvm-android12-arm64.zip"
 
-    /** Returns (download URL, size) — HEAD-checks the redirect endpoint. */
+    /** Known-good pinned image (first fully published bundle). */
+    const val PINNED_ASSET_URL =
+        "https://github.com/$REPO/releases/download/android12-v6/pocketvm-android12-arm64-v6.zip"
+
+    private val CANDIDATE_URLS = listOf(FIXED_ASSET_URL, PINNED_ASSET_URL)
+
+    /** Returns (download URL, size) — HEAD-checks candidates, following redirects. */
     fun latestAndroidAsset(): Pair<String, Long>? {
-        val conn = URL(FIXED_ASSET_URL).openConnection() as HttpURLConnection
+        for (url in CANDIDATE_URLS) {
+            val size = headSize(url)
+            if (size != null) return url to size
+        }
+        return null
+    }
+
+    private fun headSize(url: String): Long? {
+        val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "HEAD"
         conn.instanceFollowRedirects = true
         conn.setRequestProperty("User-Agent", "pocketvm")
         conn.connectTimeout = 20_000
         conn.readTimeout = 30_000
         try {
-            if (conn.responseCode in 200..299) {
-                return FIXED_ASSET_URL to conn.contentLengthLong
-            }
+            if (conn.responseCode in 200..299) return conn.contentLengthLong
+            return null
+        } catch (e: Exception) {
             return null
         } finally {
             conn.disconnect()
