@@ -56,7 +56,7 @@ class DiagnosticsActivity : AppCompatActivity() {
     private fun tail(f: java.io.File, lines: Int): List<String> {
         if (!f.isFile) return listOf("<no log file>")
         return try {
-            f.readText().lineSequence().takeLast(lines).toList()
+            f.readLines().takeLast(lines)
         } catch (e: Exception) {
             listOf("<unreadable: ${e.message}>")
         }

@@ -64,7 +64,7 @@ class ConsoleActivity : AppCompatActivity() {
 
         vncView.holder.addCallback(object : android.view.SurfaceHolder.Callback {
             override fun surfaceCreated(holder: android.view.SurfaceHolder) {
-                surfaceReady = Surface(holder.surface)
+                surfaceReady = holder.surface
             }
             override fun surfaceChanged(holder: android.view.SurfaceHolder, format: Int, width: Int, height: Int) { }
             override fun surfaceDestroyed(holder: android.view.SurfaceHolder) {
@@ -184,7 +184,7 @@ class ConsoleActivity : AppCompatActivity() {
                         runOnUiThread {
                             vncView.setFramebufferSize(width, height)
                             vncView.touchDelegate = { action, x, y ->
-                                sc.sendTouch(action, x, y)
+                                scrcpy?.sendTouch(action, x, y)
                             }
                         }
                     }
