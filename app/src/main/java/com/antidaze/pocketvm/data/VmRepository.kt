@@ -23,6 +23,21 @@ class VmRepository(context: Context) {
     val vmsRoot: File
         get() = File(appContext.getExternalFilesDir(null) ?: appContext.filesDir, "vms")
 
+    /**
+     * Shared image store: downloads land here ONCE and are reused by every VM,
+     * so deleting a VM never throws away a multi-GB image.
+     */
+    val imagesRoot: File
+        get() = File(appContext.getExternalFilesDir(null) ?: appContext.filesDir, "images")
+
+    fun sharedAndroidDir(): File = File(imagesRoot, "android12").apply { mkdirs() }
+
+    fun sharedAndroidBase(): File = File(sharedAndroidDir(), "rootfs.img")
+
+    fun sharedAndroidKernel(): File = File(sharedAndroidDir(), "vmlinuz")
+
+    fun sharedAlpineIso(): File = File(imagesRoot, "alpine.iso")
+
     val runtimeRoot: File
         get() = File(appContext.filesDir, "runtime")
 
@@ -75,9 +90,13 @@ class VmRepository(context: Context) {
     }
 
     /** Streams a remote file (e.g. the Alpine test ISO) into the VM dir. */
-    fun downloadImage(id: String, url: String, fileName: String, onProgress: (read: Long, total: Long) -> Unit): File {
-        val dest = File(vmDir(id), fileName)
-        val tmp = File(vmDir(id), "$fileName.part")
+    fun downloadImage(id: String, url: String, fileName: String, onProgress: (read: Long, total: Long) -> Unit): File =
+        downloadTo(url, vmDir(id), fileName, onProgress)
+
+    /** Downloads into an arbitrary dir (used for the shared image store). */
+    fun downloadTo(url: String, dir: File, fileName: String, onProgress: (read: Long, total: Long) -> Unit): File {
+        val dest = File(dir, fileName)
+        val tmp = File(dir, "$fileName.part")
         val conn = (java.net.URL(url).openConnection() as java.net.HttpURLConnection).apply {
             connectTimeout = 30_000
             readTimeout = 60_000

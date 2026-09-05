@@ -24,11 +24,22 @@ object RuntimeInstaller {
         null
     }
 
-    fun isInstalled(context: Context, version: String?): Boolean {
+    /**
+     * Unique stamp of the bundled engine. Every CI build gets a new one, so an
+     * app update always re-extracts the engine (a version string alone does
+     * NOT change when QEMU itself didn't — that bug shipped stale engines).
+     */
+    fun bundledRev(context: Context): String? = try {
+        context.assets.open(ASSET_INFO).bufferedReader().use { JSONObject(it.readText()).optString("rev") }
+    } catch (e: Exception) {
+        null
+    }
+
+    fun isInstalled(context: Context): Boolean {
         val root = File(context.filesDir, "runtime")
-        if (version.isNullOrEmpty()) return false
+        val rev = bundledRev(context) ?: return false
         val marker = File(root, ".version")
-        return marker.isFile && marker.readText().trim() == version &&
+        return marker.isFile && marker.readText().trim() == rev &&
             File(root, "bin/qemu-system-aarch64").let { it.isFile && it.canExecute() }
     }
 
@@ -62,7 +73,7 @@ object RuntimeInstaller {
             tmp.copyRecursively(root, overwrite = true)
             tmp.deleteRecursively()
         }
-        val version = bundledVersion(context) ?: "unknown"
+        val version = bundledRev(context) ?: "unknown"
         File(root, ".version").writeText(version)
         return version
     }

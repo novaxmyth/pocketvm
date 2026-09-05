@@ -45,54 +45,76 @@ class DownloadService : Service() {
 
         thread(name = "download-$vmId") {
             val repo = VmRepository(this@DownloadService)
+            fun note(vmId: String, msg: String) {
+                try {
+                    val cfg = repo.listVms().firstOrNull { it.id == vmId } ?: return
+                    cfg.statusNote = msg
+                    repo.saveConfig(cfg)
+                } catch (x: Exception) { }
+            }
             try {
-                val realUrl = if (kind == KIND_ANDROID) {
-                    GuestImages.latestAndroidAsset()?.first
-                        ?: throw IllegalStateException("Android guest image is not available yet")
-                } else url
-
-                val dest = when (kind) {
-                    KIND_ANDROID -> "guest.zip"
-                    else -> "alpine.iso"
-                }
-                repo.downloadImage(vmId, realUrl, dest) { read, total ->
-                    val pct = if (total > 0) (read * 100 / total).toInt() else 0
-                    notify(notifyId, progressNotification(label, pct, total, false))
-                }
-
                 val vmDir = repo.vmDir(vmId)
-                val cfg = repo.listVms().firstOrNull { it.id == vmId }
+                val cfg0 = repo.listVms().firstOrNull { it.id == vmId }
                     ?: throw IllegalStateException("VM vanished")
-                if (kind == KIND_ANDROID) {
-                    GuestImages.unzip(File(vmDir, "guest.zip"), vmDir)
-                    val gz = File(vmDir, "rootfs.img.gz")
-                    val raw = File(vmDir, "rootfs.img")
-                    GuestImages.gunzip(gz, raw)
-                    notify(notifyId, progressNotification(label, 100, 0, true))
-                    gz.delete()
-                    File(vmDir, "guest.zip").delete()
+                val isAndroid = cfg0.guest == "android" || kind == KIND_ANDROID
+
+                if (isAndroid) {
+                    // Shared store: the multi-GB image is downloaded ONCE and
+                    // reused by every VM (deleting a VM keeps it).
+                    val shared = repo.sharedAndroidDir()
+                    val baseImg = repo.sharedAndroidBase()
+                    val kernel = repo.sharedAndroidKernel()
+                    if (!baseImg.isFile || !kernel.isFile) {
+                        val realUrl = GuestImages.latestAndroidAsset()?.first
+                            ?: throw IllegalStateException("Android guest image is not available yet")
+                        val zip = repo.downloadTo(realUrl, shared, "guest.zip") { read, total ->
+                            val pct = if (total > 0) (read * 100 / total).toInt() else 0
+                            notify(notifyId, progressNotification(label, pct, total, false))
+                        }
+                        notify(notifyId, progressNotification(label, 100, 0, true))
+                        GuestImages.unzip(zip, shared)
+                        val gz = File(shared, "rootfs.img.gz")
+                        GuestImages.gunzip(gz, baseImg)
+                        gz.delete()
+                        zip.delete()
+                    }
+                    note(vmId, "preparing disk…")
+                    notify(notifyId, progressNotification(label, 0, 0, true))
+                    // Per-VM writable copy of the shared base image.
+                    val vmSys = File(vmDir, "system.img")
+                    if (!vmSys.isFile || vmSys.length() != baseImg.length()) {
+                        baseImg.copyTo(vmSys, overwrite = true)
+                    }
+                    val cfg = repo.listVms().firstOrNull { it.id == vmId }
+                        ?: throw IllegalStateException("VM vanished")
                     cfg.guest = "android"
-                    cfg.systemImagePath = raw.absolutePath
+                    cfg.systemImagePath = vmSys.absolutePath
                     cfg.systemIsCdrom = false
-                    cfg.kernelPath = File(vmDir, "vmlinuz").absolutePath
+                    cfg.kernelPath = kernel.absolutePath
                     cfg.kernelCmdline = "console=ttyAMA0 root=/dev/vda1 rw init=/lib/systemd/systemd"
+                    cfg.preparing = false
+                    cfg.statusNote = ""
+                    repo.saveConfig(cfg)
                 } else {
-                    cfg.systemImagePath = File(vmDir, "alpine.iso").absolutePath
+                    val iso = repo.sharedAlpineIso()
+                    if (!iso.isFile) {
+                        val realUrl = url.ifEmpty { throw IllegalStateException("no download URL") }
+                        repo.downloadTo(realUrl, repo.imagesRoot, "alpine.iso") { read, total ->
+                            val pct = if (total > 0) (read * 100 / total).toInt() else 0
+                            notify(notifyId, progressNotification(label, pct, total, false))
+                        }
+                    }
+                    val cfg = repo.listVms().firstOrNull { it.id == vmId }
+                        ?: throw IllegalStateException("VM vanished")
+                    cfg.systemImagePath = iso.absolutePath
                     cfg.systemIsCdrom = true
+                    cfg.preparing = false
+                    cfg.statusNote = ""
+                    repo.saveConfig(cfg)
                 }
-                cfg.preparing = false
-                cfg.statusNote = ""
-                repo.saveConfig(cfg)
                 notify(notifyId, resultNotification(label, true, null))
             } catch (e: Exception) {
-                try {
-                    val cfg = repo.listVms().firstOrNull { it.id == vmId }
-                    if (cfg != null) {
-                        cfg.preparing = false
-                        cfg.statusNote = "download failed: ${e.message ?: "error"}"
-                        repo.saveConfig(cfg)
-                    }
-                } catch (x: Exception) { }
+                note(vmId, "download failed: ${e.message ?: "error"}")
                 notify(notifyId, resultNotification(label, false, e.message ?: "error"))
             } finally {
                 try { wakeLock.release() } catch (x: Exception) { }

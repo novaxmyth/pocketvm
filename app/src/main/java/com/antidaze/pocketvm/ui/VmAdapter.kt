@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.antidaze.pocketvm.R
 import com.antidaze.pocketvm.data.VmConfig
@@ -24,12 +25,18 @@ class VmAdapter(
 
     private val items = mutableListOf<VmConfig>()
     private var repo: com.antidaze.pocketvm.data.VmRepository? = null
+    private var states: Map<String, String> = emptyMap()
 
     fun setRepo(r: com.antidaze.pocketvm.data.VmRepository) { repo = r }
 
     fun submit(list: List<VmConfig>) {
         items.clear()
         items.addAll(list)
+        notifyDataSetChanged()
+    }
+
+    fun submitStates(m: Map<String, String>) {
+        states = m
         notifyDataSetChanged()
     }
 
@@ -50,18 +57,32 @@ class VmAdapter(
         val ctx = h.itemView.context
         val running = VmManager.get(cfg.id)?.running == true
         val memLabel = if (cfg.ramMb >= 1024 && cfg.ramMb % 1024 == 0) "${cfg.ramMb / 1024} GB" else "${cfg.ramMb} MB"
-        val state = when {
-            cfg.preparing -> ctx.getString(R.string.state_downloading)
+        val state = states[cfg.id] ?: when {
+            cfg.preparing -> "downloading"
             cfg.statusNote.isNotEmpty() -> cfg.statusNote
-            running -> ctx.getString(R.string.state_running)
-            else -> ctx.getString(R.string.state_stopped)
+            running -> "running"
+            else -> "stopped"
+        }
+        val stateLabel = when (state) {
+            "downloading" -> ctx.getString(R.string.state_downloading)
+            "booting" -> ctx.getString(R.string.state_booting)
+            "ready" -> ctx.getString(R.string.state_ready)
+            "running" -> ctx.getString(R.string.state_running)
+            else -> if (cfg.statusNote.isNotEmpty()) cfg.statusNote else ctx.getString(R.string.state_stopped)
         }
         h.title.text = cfg.name
         h.subtitle.text = ctx.getString(
             R.string.vm_subtitle,
             memLabel,
             cfg.cpus,
-            state
+            stateLabel
+        )
+        h.subtitle.setTextColor(
+            when (state) {
+                "ready", "running" -> ContextCompat.getColor(ctx, R.color.state_green)
+                "booting" -> ContextCompat.getColor(ctx, R.color.state_orange)
+                else -> ContextCompat.getColor(ctx, R.color.state_gray)
+            }
         )
         h.start.text = ctx.getString(if (running) R.string.vm_open else R.string.vm_start)
 
@@ -104,8 +125,7 @@ class VmAdapter(
 
     private fun installEngineIfNeeded(h: Holder, r: com.antidaze.pocketvm.data.VmRepository, then: () -> Unit) {
         val ctx = h.itemView.context
-        val version = RuntimeInstaller.bundledVersion(ctx)
-        if (RuntimeInstaller.isInstalled(ctx, version)) {
+        if (RuntimeInstaller.isInstalled(ctx)) {
             then()
             return
         }

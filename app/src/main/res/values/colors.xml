@@ -5,4 +5,7 @@
     <color name="on_primary">#FFFFFF</color>
     <color name="ic_launcher_background">#14213D</color>
     <color name="console_status_bg">#CC1B1B1B</color>
+    <color name="state_green">#2E7D32</color>
+    <color name="state_orange">#EF6C00</color>
+    <color name="state_gray">#8A8A8A</color>
 </resources>

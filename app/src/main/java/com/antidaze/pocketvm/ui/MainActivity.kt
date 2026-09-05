@@ -13,12 +13,15 @@ import com.antidaze.pocketvm.data.VmRepository
 import com.antidaze.pocketvm.engine.RuntimeInstaller
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var repo: VmRepository
     private lateinit var adapter: VmAdapter
+    private var pollJob: kotlinx.coroutines.Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +58,40 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refresh()
+        startPolling()
+    }
+
+    override fun onPause() {
+        pollJob?.cancel()
+        pollJob = null
+        super.onPause()
+    }
+
+    /**
+     * Live state on the main page: boot in the background and the list turns
+     * green once the guest is actually up (adbd answers for Android guests).
+     */
+    private fun startPolling() {
+        pollJob?.cancel()
+        pollJob = lifecycleScope.launch {
+            while (isActive) {
+                delay(4000)
+                try {
+                    val states = mutableMapOf<String, String>()
+                    for (vm in repo.listVms()) {
+                        val running = com.antidaze.pocketvm.engine.VmManager.get(vm.id)?.running == true
+                        states[vm.id] = when {
+                            vm.preparing -> "downloading"
+                            !running -> "stopped"
+                            vm.guest == "android" ->
+                                if (com.antidaze.pocketvm.guest.GuestProbes.adbAlive()) "ready" else "booting"
+                            else -> "running"
+                        }
+                    }
+                    adapter.submitStates(states)
+                } catch (e: Exception) { /* transient */ }
+            }
+        }
     }
 
     fun refresh() {

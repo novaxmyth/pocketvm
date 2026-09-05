@@ -208,7 +208,12 @@ def main():
         raise RuntimeError(f"runtime.zip too large: {size_mb:.1f} MB")
 
     with open(OUT_INFO, "w") as f:
-        json.dump({"qemuVersion": f"QEMU {qemu_version} (Termux build)", "builtAt": os.environ.get("GITHUB_SHA", "")}, f)
+        rev = f"{os.environ.get('GITHUB_RUN_NUMBER', '0')}-{os.environ.get('GITHUB_SHA', 'local')[:8]}"
+        json.dump({
+            "qemuVersion": f"QEMU {qemu_version} (Termux build)",
+            "rev": rev,
+            "builtAt": os.environ.get("GITHUB_SHA", ""),
+        }, f)
 
     n_libs = len(os.listdir(out_lib))
     print(f"engine bundled: bin/qemu-system-aarch64 + {n_libs} libs + QEMU_EFI.fd "

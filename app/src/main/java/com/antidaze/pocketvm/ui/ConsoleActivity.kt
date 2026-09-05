@@ -247,6 +247,11 @@ class ConsoleActivity : AppCompatActivity() {
     }
 
     override fun dispatchKeyEvent(e: android.view.KeyEvent): Boolean {
+        // System/gesture back must LEAVE the console (the VM keeps running in
+        // the background) — never swallow it as guest input.
+        if (e.keyCode == android.view.KeyEvent.KEYCODE_BACK) {
+            return super.dispatchKeyEvent(e)
+        }
         if (guest == "android") {
             val down = e.action == android.view.KeyEvent.ACTION_DOWN
             val up = e.action == android.view.KeyEvent.ACTION_UP

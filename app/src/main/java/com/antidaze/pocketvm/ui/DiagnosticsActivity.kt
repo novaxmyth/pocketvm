@@ -30,7 +30,7 @@ class DiagnosticsActivity : AppCompatActivity() {
             val mem = android.app.ActivityManager.MemoryInfo().also { mm.getMemoryInfo(it) }
             appendLine("ram: total ${(mem.totalMem / 1048576)} MB, avail ${(mem.availMem / 1048576)} MB")
             appendLine("engine version: ${RuntimeInstaller.bundledVersion(this@DiagnosticsActivity) ?: "<none bundled>"}")
-            appendLine("engine installed: ${RuntimeInstaller.isInstalled(this@DiagnosticsActivity, RuntimeInstaller.bundledVersion(this@DiagnosticsActivity))}")
+            appendLine("engine installed: ${RuntimeInstaller.isInstalled(this@DiagnosticsActivity)}")
             appendLine("running VMs: " + VmManager.let { m ->
                 val any = m.anyRunning()
                 if (any) "yes" else "no"
