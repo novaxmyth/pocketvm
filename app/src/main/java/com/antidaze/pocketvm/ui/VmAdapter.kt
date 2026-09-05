@@ -50,12 +50,18 @@ class VmAdapter(
         val ctx = h.itemView.context
         val running = VmManager.get(cfg.id)?.running == true
         val memLabel = if (cfg.ramMb >= 1024 && cfg.ramMb % 1024 == 0) "${cfg.ramMb / 1024} GB" else "${cfg.ramMb} MB"
+        val state = when {
+            cfg.preparing -> ctx.getString(R.string.state_downloading)
+            cfg.statusNote.isNotEmpty() -> cfg.statusNote
+            running -> ctx.getString(R.string.state_running)
+            else -> ctx.getString(R.string.state_stopped)
+        }
         h.title.text = cfg.name
         h.subtitle.text = ctx.getString(
             R.string.vm_subtitle,
             memLabel,
             cfg.cpus,
-            if (running) ctx.getString(R.string.state_running) else ctx.getString(R.string.state_stopped)
+            state
         )
         h.start.text = ctx.getString(if (running) R.string.vm_open else R.string.vm_start)
 

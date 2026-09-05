@@ -12,6 +12,12 @@
     <string name="vm_subtitle">%1$s · %2$d vCPU · %3$s</string>
     <string name="state_running">running</string>
     <string name="state_stopped">stopped</string>
+    <string name="state_downloading">downloading…</string>
+
+    <string name="toast_download_bg">Downloading in background — you can leave the app. See the notification.</string>
+    <string name="notif_dl_title">Downloading %1$s</string>
+    <string name="notif_dl_done">Ready: %1$s — your VM can start now.</string>
+    <string name="notif_dl_failed">Download failed: %1$s</string>
 
     <string name="delete_title">Delete VM?</string>
     <string name="delete_message">“%1$s” and all of its disk data will be permanently removed.</string>
