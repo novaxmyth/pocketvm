@@ -7,6 +7,7 @@ https://github.com/termux/termux-packages), prunes everything that
 qemu-system-aarch64 does not actually link against (DT_NEEDED walk), adds
 the UEFI firmware image, and packs the result into app assets.
 """
+import glob
 import json
 import os
 import re
@@ -14,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import urllib.request
+import zipfile
 
 BASE = "https://packages.termux.dev/apt/termux-main"
 ARCH = "aarch64"
@@ -125,7 +127,18 @@ def main():
                 f.write(http_get(url))
         extract_deb(deb, staging)
 
-    bin_src = os.path.join(staging, "usr/bin/qemu-system-aarch64")
+    # Termux debs unpack under data/data/com.termux/files/usr; locate that tree
+    # wherever it is so we don't depend on the packaging convention.
+    usr_candidates = [
+        d for d in glob.glob(os.path.join(staging, "**", "usr"), recursive=True)
+        if os.path.isdir(os.path.join(d, "bin")) or os.path.isdir(os.path.join(d, "lib"))
+    ]
+    if not usr_candidates:
+        raise RuntimeError("no usr/bin|usr/lib tree found after extraction")
+    pkg_usr = usr_candidates[0]
+    print(f"package usr tree: {pkg_usr}")
+
+    bin_src = os.path.join(pkg_usr, "bin/qemu-system-aarch64")
     if not os.path.exists(bin_src):
         raise RuntimeError("qemu-system-aarch64 not found after extraction")
 
@@ -143,7 +156,7 @@ def main():
         if name in seen:
             continue
         seen.add(name)
-        cand = os.path.join(staging, "usr/lib", name)
+        cand = os.path.join(pkg_usr, "lib", name)
         if os.path.exists(cand):
             shutil.copy2(cand, os.path.join(out_lib, name))
             todo.extend(elf_needed(cand))
