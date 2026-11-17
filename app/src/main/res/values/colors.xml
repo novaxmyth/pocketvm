@@ -9,6 +9,7 @@
     <color name="on_secondary">#FFFFFF</color>
 
     <!-- Dark Cyber / AMOLED Backgrounds -->
+    <color name="ic_launcher_background">#0D1117</color>
     <color name="background">#0D1117</color>
     <color name="surface">#161B22</color>
     <color name="surface_variant">#21262D</color>
