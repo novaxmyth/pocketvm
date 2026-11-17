@@ -165,8 +165,8 @@ class VirtualPackageManager private constructor(
                 PackageManager.GET_ACTIVITIES or PackageManager.GET_PERMISSIONS
             ) ?: return Result.failure(IllegalStateException("Failed to parse APK archive"))
 
-            val pkgName = pkgInfo.packageName
-            val appInfo = pkgInfo.applicationInfo
+            val pkgName = pkgInfo.packageName ?: return Result.failure(IllegalStateException("No package name in APK"))
+            val appInfo = pkgInfo.applicationInfo ?: return Result.failure(IllegalStateException("No application info in APK"))
             appInfo.sourceDir = apkFile.absolutePath
             appInfo.publicSourceDir = apkFile.absolutePath
 
