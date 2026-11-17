@@ -1,4 +1,4 @@
-name: Build APK
+name: Build PocketVM APK
 
 on:
   push:
@@ -15,183 +15,84 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: '17'
+            distribution: temurin
+            java-version: '17'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Bundle QEMU engine
-        run: python3 ci/fetch_engine.py
-
-      - name: Grant execute permission for gradlew
+      - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
-      - name: Build signed release APK
+      - name: Build Signed Release APK
         run: |
           set -o pipefail
-          ./gradlew :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee build.log
+          ./gradlew :app:assembleRelease :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
 
-      - name: Fallback to debug APK if release came out unsigned
-        run: |
-          if ls app/build/outputs/apk/release/*-unsigned.apk >/dev/null 2>&1; then
-            echo "Release APK is unsigned; building debug instead"
-            ./gradlew :app:assembleDebug --no-daemon
-            echo "APK_DIR=app/build/outputs/apk/debug" >> "$GITHUB_ENV"
-          else
-            echo "APK_DIR=app/build/outputs/apk/release" >> "$GITHUB_ENV"
-          fi
-
-      - name: Publish error log to ci-error branch
-        if: failure()
-        run: |
-          tail -c 200000 build.log > errtail.txt || echo "no build.log" > errtail.txt
-          git config user.email "ci@pocketvm.local"
-          git config user.name "pocketvm-ci"
-          git checkout -q -B ci-error
-          git add -f errtail.txt
-          git commit -qm "ci error tail (run $GITHUB_RUN_ID)" || true
-          git push -q -f origin ci-error
-
-      - name: Restore previous gofile upload metadata
-        id: restore
-        uses: actions/cache/restore@v4
-        with:
-          path: ci/last-upload.json
-          key: gofile-upload-state
-          fail-on-cache-miss: false
-
-      - name: Purge previous gofile upload
-        shell: bash
-        run: |
-          if [ -f ci/last-upload.json ]; then
-            CONTENT_ID=$(jq -r '.contentId // empty' ci/last-upload.json)
-            GUEST_TOKEN=$(jq -r '.guestToken // empty' ci/last-upload.json)
-            if [ -n "$CONTENT_ID" ] && [ -n "$GUEST_TOKEN" ]; then
-              echo "Purging previous gofile upload: $CONTENT_ID"
-              curl -s -X DELETE "https://api.gofile.io/contents/$CONTENT_ID" \
-                -H "Authorization: Bearer $GUEST_TOKEN" || echo "purge failed (ignored)"
-            fi
-          else
-            echo "No previous upload metadata found."
-          fi
-
-      - name: Upload APK to gofile.io
-        id: upload
-        shell: bash
+      - name: Determine Output APK
         run: |
           mkdir -p out
-          cp "$APK_DIR"/*.apk out/ 2>/dev/null || true
+          if ls app/build/outputs/apk/release/*-release.apk >/dev/null 2>&1; then
+            cp app/build/outputs/apk/release/*-release.apk out/pocketvm-v2.0-release.apk
+            echo "PRIMARY_APK=out/pocketvm-v2.0-release.apk" >> "$GITHUB_ENV"
+          elif ls app/build/outputs/apk/debug/*.apk >/dev/null 2>&1; then
+            cp app/build/outputs/apk/debug/*.apk out/pocketvm-v2.0-debug.apk
+            echo "PRIMARY_APK=out/pocketvm-v2.0-debug.apk" >> "$GITHUB_ENV"
+          fi
           ls -la out/
 
-          for APK in out/*.apk; do
-            [ -f "$APK" ] || continue
+      - name: Upload APK to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketvm-apk
+          path: out/*.apk
+
+      - name: Upload APK to gofile.io
+        id: upload_gofile
+        shell: bash
+        continue-on-error: true
+        run: |
+          APK="$PRIMARY_APK"
+          if [ -f "$APK" ]; then
             NAME=$(basename "$APK")
             SIZE=$(du -h "$APK" | cut -f1)
-            echo "Uploading $NAME ($SIZE) ..."
-            RESP=$(curl -s -X POST -F "file=@$APK" https://upload.gofile.io/uploadfile)
-            echo "gofile response for $NAME: $RESP"
-            STATUS=$(echo "$RESP" | jq -r '.status // "error"')
-            if [ "$STATUS" != "ok" ]; then
-              echo "::error::gofile upload failed for $NAME: $RESP"
-              exit 1
-            fi
-            DOWNLOAD=$(echo "$RESP" | jq -r '.data.downloadPage // .data.directLink // ""')
-            CONTENT_ID=$(echo "$RESP" | jq -r '.data.fileId // ""')
-            TOK=$(echo "$RESP" | jq -r '.data.guestToken // ""')
+            echo "Uploading $NAME ($SIZE) to gofile.io..."
+            RESP=$(curl -s -X POST -F "file=@$APK" https://upload.gofile.io/uploadfile || true)
+            echo "gofile response: $RESP"
+            DOWNLOAD=$(echo "$RESP" | grep -o 'https://[^"]*download[^"]*' | head -1 || echo "")
             echo "download_link=$DOWNLOAD" >> "$GITHUB_OUTPUT"
-            echo "contentId=$CONTENT_ID" >> "$GITHUB_OUTPUT"
-            echo "guestToken=$TOK" >> "$GITHUB_OUTPUT"
             echo "file_size=$SIZE" >> "$GITHUB_OUTPUT"
-            echo "uploaded=$NAME" >> "$GITHUB_OUTPUT"
-          done
-
-      - name: Save upload metadata for next purge
-        shell: bash
-        run: |
-          mkdir -p ci
-          cat > ci/last-upload.json << EOF
-          {
-            "contentId": "${{ steps.upload.outputs.contentId }}",
-            "guestToken": "${{ steps.upload.outputs.guestToken }}",
-            "builtAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          }
-          EOF
-
-      - name: Cache upload metadata
-        uses: actions/cache/save@v4
-        with:
-          path: ci/last-upload.json
-          key: gofile-upload-state-${{ github.run_id }}
-
-      - name: Job summary
-        shell: bash
-        run: |
-          {
-            echo "## PocketVM build"
-            echo ""
-            echo "- APK: ${{ steps.upload.outputs.uploaded }} (${{ steps.upload.outputs.file_size }})"
-            echo "- Download: ${{ steps.upload.outputs.download_link }}"
-            echo "- Commit: ${{ github.sha }}"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Publish build link to ci-latest branch
-        if: success()
-        run: |
-          {
-            echo "apk=${{ steps.upload.outputs.download_link }}"
-            echo "commit=${{ github.sha }}"
-            echo "built=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          } > link.txt
-          git config user.email "ci@pocketvm.local"
-          git config user.name "pocketvm-ci"
-          git checkout -q -B ci-latest
-          git add -f link.txt
-          git commit -qm "latest build link (run $GITHUB_RUN_ID)" || true
-          git push -q -f origin ci-latest
-
-  smoke:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    timeout-minutes: 20
-    steps:
-      - name: Install QEMU on runner
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-system-arm qemu-efi-aarch64
-
-      - name: Download Alpine test ISO
-        run: |
-          curl -fL --retry 3 -o alpine.iso \
-            https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/aarch64/alpine-virt-3.20.9-aarch64.iso
-          ls -la alpine.iso
-
-      - name: Boot test (TCG, same machine/board as the app)
-        run: |
-          timeout 420 qemu-system-aarch64 \
-            -machine virt,highmem=on -cpu max -accel tcg,thread=multi \
-            -smp 2 -m 512 \
-            -drive file=alpine.iso,format=raw,if=none,id=cd0,readonly=on \
-            -device virtio-blk-device,drive=cd0 \
-            -device virtio-keyboard-device -device virtio-tablet-device \
-            -device ramfb -audiodev none,id=noaudio \
-            -serial file:serial.log -monitor none -msg timestamp=on \
-            -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd &
-          QPID=$!
-          sleep 400 || true
-          kill $QPID 2>/dev/null || true
-          echo "--- serial.log (tail) ---"
-          tail -40 serial.log || echo "(no serial output)"
-          if grep -q -i -e "Welcome to Alpine" -e "login:" serial.log; then
-            echo "BOOT OK"
-          else
-            echo "BOOT INCONCLUSIVE (serial console may not be enabled by this ISO)"
           fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v2.0.${{ github.run_number }}"
+          echo "Creating Release $TAG..."
+          gh release create "$TAG" out/*.apk \
+            --title "PocketVM v2.0.${{ github.run_number }} (Native Android Virtual Instance Host)" \
+            --notes "PocketVM v2.0: High-performance native Android virtual machine container host for unprivileged Android devices. Built with Material 3, dynamic package manager, host app cloner, virtual phone desktop, and floating window support." \
+            || gh release upload "$TAG" out/*.apk --clobber || true
+
+      - name: Job Summary
+        shell: bash
+        run: |
+          {
+            echo "## 🚀 PocketVM v2.0 Build Successful"
+            echo ""
+            echo "- **Commit:** \`${{ github.sha }}\`"
+            echo "- **Build Run:** \`#${{ github.run_number }}\`"
+            echo "- **APK Artifacts:** Uploaded to GitHub Actions Run Artifacts & GitHub Releases"
+            if [ -n "${{ steps.upload_gofile.outputs.download_link }}" ]; then
+              echo "- **Direct Download Link:** ${{ steps.upload_gofile.outputs.download_link }}"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

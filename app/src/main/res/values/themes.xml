@@ -1,8 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.PocketVM" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Base Application Theme -->
+    <style name="Theme.PocketVM" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="colorPrimaryVariant">@color/primary_variant</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_variant</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+
+    <!-- Fullscreen Immersive Virtual Phone Theme -->
+    <style name="Theme.PocketVM.Fullscreen" parent="Theme.PocketVM">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:statusBarColor">@color/vm_status_bar</item>
+        <item name="android:navigationBarColor">@color/vm_nav_bar</item>
+        <item name="android:windowBackground">@color/vm_desktop_bg</item>
+    </style>
+
+    <!-- Dialog Style -->
+    <style name="Theme.PocketVM.Dialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackground">@color/surface</item>
     </style>
 </resources>
