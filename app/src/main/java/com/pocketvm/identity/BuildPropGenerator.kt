@@ -79,7 +79,7 @@ object BuildPropGenerator {
         sb.prop("ro.build.user", "android-build")
         sb.prop("ro.build.host", "build.pocketvm.com")
         sb.prop("ro.build.flavor", "${vm.spoofedDevice}-$buildType")
-        sb.prop("ro.build.description", "${vm.spoofedDevice}-$buildType $androidVersionFor(vm) $buildId $incrementalId $buildTags")
+        sb.prop("ro.build.description", "${vm.spoofedDevice}-$buildType ${androidVersionFor(vm)} $buildId $incrementalId $buildTags")
         sb.prop("ro.build.date", buildDate)
         sb.prop("ro.build.date.utc", buildTimestamp.toString())
         sb.prop("ro.build.fingerprint", vm.spoofedFingerprint)

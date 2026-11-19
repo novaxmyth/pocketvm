@@ -18,13 +18,13 @@ class VProcessManager {
         private const val TAG = "VProcessManager"
 
         /**
-         * Base value for virtual UIDs.  Each (vmId, packageName) pair is assigned
+         * Base value for virtual UIDs. Each (vmId, packageName) pair is assigned
          * a unique UID starting from this value.
          */
         private const val VUID_BASE = 10_000
 
         /**
-         * Base value for virtual PIDs.  Incremented for every new process record.
+         * Base value for virtual PIDs. Incremented for every new process record.
          */
         private const val VPID_BASE = 1_000
     }
@@ -57,7 +57,7 @@ class VProcessManager {
      * @return The newly created [VProcessRecord].
      */
     fun startProcess(
-        vmId: Long,
+        vmId: String,
         packageName: String,
         hostPid: Int = android.os.Process.myPid(),
         processName: String = packageName
@@ -98,7 +98,7 @@ class VProcessManager {
     /**
      * Kills all processes belonging to [vmId].
      */
-    fun killAllProcesses(vmId: Long) {
+    fun killAllProcesses(vmId: String) {
         val toRemove = processesByVpid.values.filter { it.vmId == vmId }
         for (record in toRemove) {
             processesByVpid.remove(record.vpid)
@@ -110,14 +110,14 @@ class VProcessManager {
     /**
      * Returns all running [VProcessRecord]s for the given [vmId].
      */
-    fun getRunningProcesses(vmId: Long): List<VProcessRecord> =
+    fun getRunningProcesses(vmId: String): List<VProcessRecord> =
         processesByVpid.values.filter { it.vmId == vmId }
 
     /**
      * Returns the [VProcessRecord] for a specific package running inside [vmId],
      * or `null` if no such process exists.
      */
-    fun getProcessForPackage(vmId: Long, packageName: String): VProcessRecord? =
+    fun getProcessForPackage(vmId: String, packageName: String): VProcessRecord? =
         processesByVpid.values.firstOrNull { it.vmId == vmId && it.packageName == packageName }
 
     /**
@@ -136,7 +136,7 @@ class VProcessManager {
     /**
      * Returns or assigns a stable virtual UID for the (vmId, packageName) pair.
      */
-    fun getOrAssignUid(vmId: Long, packageName: String): Int {
+    fun getOrAssignUid(vmId: String, packageName: String): Int {
         val key = "$vmId:$packageName"
         return uidAssignments.getOrPut(key) { vuidCounter.getAndIncrement() }
     }
@@ -165,7 +165,7 @@ data class VProcessRecord(
     /** Actual host-level UID. */
     val uid: Int,
     /** ID of the owning VM. */
-    val vmId: Long,
+    val vmId: String,
     /** Package name of the guest app. */
     val packageName: String,
     /** Process name (may differ from package for multi-process apps). */

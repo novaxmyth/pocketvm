@@ -56,7 +56,7 @@ object ProviderHook {
      *         slots remain.
      */
     @Synchronized
-    fun registerGuestAuthority(vmId: Long, guestAuthority: String): String? {
+    fun registerGuestAuthority(vmId: String, guestAuthority: String): String? {
         val key = "$vmId:$guestAuthority"
         authorityMap[key]?.let { return it }
 
@@ -79,7 +79,7 @@ object ProviderHook {
      *
      * @return The stub authority if the guest authority has been registered, otherwise `null`.
      */
-    fun resolveGuestAuthority(vmId: Long, guestAuthority: String): String? {
+    fun resolveGuestAuthority(vmId: String, guestAuthority: String): String? {
         return authorityMap["$vmId:$guestAuthority"]
     }
 
@@ -89,11 +89,11 @@ object ProviderHook {
      * @return A [Pair] of `(vmId, guestAuthority)` or `null` if the stub authority
      *         is not mapped.
      */
-    fun resolveStubAuthority(stubAuthority: String): Pair<Long, String>? {
+    fun resolveStubAuthority(stubAuthority: String): Pair<String, String>? {
         val key = reverseMap[stubAuthority] ?: return null
         val parts = key.split(":", limit = 2)
         if (parts.size != 2) return null
-        val vmId = parts[0].toLongOrNull() ?: return null
+        val vmId = parts[0]
         return vmId to parts[1]
     }
 
@@ -104,7 +104,7 @@ object ProviderHook {
      * sessions that exceed [MAX_STUB_PROVIDERS] consider a more sophisticated allocator.
      */
     @Synchronized
-    fun unregisterVm(vmId: Long) {
+    fun unregisterVm(vmId: String) {
         val prefix = "$vmId:"
         val keysToRemove = authorityMap.keys.filter { it.startsWith(prefix) }
         for (key in keysToRemove) {

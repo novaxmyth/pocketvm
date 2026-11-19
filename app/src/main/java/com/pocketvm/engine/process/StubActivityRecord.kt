@@ -21,7 +21,7 @@ import android.content.Intent
  */
 data class StubActivityRecord(
     val stubIndex: Int,
-    val vmId: Long,
+    val vmId: String,
     val packageName: String,
     val targetActivityName: String,
     val launchIntent: Intent,
