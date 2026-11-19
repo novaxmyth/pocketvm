@@ -33,7 +33,7 @@ class ServiceHookManager(private val core: VirtualCore) {
 
     /** The VM id that hooks are currently installed for, or `null`. */
     @Volatile
-    private var hookedVmId: Long? = null
+    private var hookedVmId: String? = null
 
     val isHooked: Boolean
         get() = hookedVmId != null
@@ -43,7 +43,7 @@ class ServiceHookManager(private val core: VirtualCore) {
     /**
      * Install all system-level hooks for the given [vmId].
      */
-    fun installHooks(vmId: Long) {
+    fun installHooks(vmId: String) {
         if (hookedVmId == vmId) return
         try {
             hookActivityManager(vmId)
@@ -79,7 +79,7 @@ class ServiceHookManager(private val core: VirtualCore) {
      * with a [Proxy] backed by [ActivityManagerProxy].
      */
     @Suppress("PrivateApi")
-    fun hookActivityManager(vmId: Long) {
+    fun hookActivityManager(vmId: String) {
         try {
             // 1. Get the IActivityManagerSingleton field from android.app.ActivityManager
             val amClass = Class.forName("android.app.ActivityManager")
@@ -121,7 +121,7 @@ class ServiceHookManager(private val core: VirtualCore) {
      * `ActivityManagerNative.gDefault`.
      */
     @Suppress("PrivateApi")
-    private fun hookActivityManagerLegacy(vmId: Long) {
+    private fun hookActivityManagerLegacy(vmId: String) {
         try {
             val amnClass = Class.forName("android.app.ActivityManagerNative")
             val gDefaultField: Field = amnClass.getDeclaredField("gDefault")
@@ -189,7 +189,7 @@ class ServiceHookManager(private val core: VirtualCore) {
      * `ActivityThread`.
      */
     @Suppress("PrivateApi")
-    fun hookPackageManager(vmId: Long) {
+    fun hookPackageManager(vmId: String) {
         try {
             // 1. Get ActivityThread.currentActivityThread()
             val atClass = Class.forName("android.app.ActivityThread")

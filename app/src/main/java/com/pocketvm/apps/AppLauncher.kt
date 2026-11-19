@@ -178,6 +178,8 @@ class AppLauncher private constructor(private val context: Context) {
                     "AppLauncher is not initialised. " +
                             "Call AppLauncher.init(context) first."
                 )
+
+        fun get(): AppLauncher = instance
     }
 }
 

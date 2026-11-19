@@ -103,6 +103,8 @@ class MockLocationProvider private constructor(context: Context) {
                     "MockLocationProvider is not initialised. " +
                             "Call MockLocationProvider.init(context) first."
                 )
+
+        fun get(): MockLocationProvider = instance
     }
 }
 

@@ -7,7 +7,7 @@ import java.io.File
  * Manages per-VM sandboxed file system.
  * Each VM instance gets its own isolated directory tree under the app's internal storage.
  */
-class VirtualFileSystem private constructor(private val context: Context) {
+class VirtualFileSystem(private val context: Context) {
 
     private val baseDir: File = File(context.filesDir, "vms").apply { mkdirs() }
 
@@ -66,17 +66,25 @@ class VirtualFileSystem private constructor(private val context: Context) {
         @Volatile
         private var INSTANCE: VirtualFileSystem? = null
 
-        fun init(context: Context) {
-            if (INSTANCE == null) {
-                synchronized(this) {
-                    if (INSTANCE == null) {
-                        INSTANCE = VirtualFileSystem(context.applicationContext)
-                    }
-                }
+        fun init(context: Context): VirtualFileSystem {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: VirtualFileSystem(context.applicationContext).also { INSTANCE = it }
             }
         }
 
         fun get(): VirtualFileSystem =
             INSTANCE ?: throw IllegalStateException("VirtualFileSystem not initialized. Call init() first.")
+
+        fun getVmDir(vmId: String): File = get().getVmDir(vmId)
+        fun getAppDataDir(vmId: String, packageName: String): File = get().getAppDataDir(vmId, packageName)
+        fun getApkDir(vmId: String, packageName: String): File = get().getApkDir(vmId, packageName)
+        fun getSdcardDir(vmId: String): File = get().getSdcardDir(vmId)
+        fun getSystemDir(vmId: String): File = get().getSystemDir(vmId)
+        fun getCacheDir(vmId: String): File = get().getCacheDir(vmId)
+        fun setupVmDirectories(vmId: String) = get().setupVmDirectories(vmId)
+        fun calculateVmSize(vmId: String): Long = get().calculateVmSize(vmId)
+        fun deleteVmStorage(vmId: String): Boolean = get().deleteVmStorage(vmId)
+        fun clearCache(vmId: String) = get().clearCache(vmId)
+        fun formatSize(bytes: Long): String = get().formatSize(bytes)
     }
 }

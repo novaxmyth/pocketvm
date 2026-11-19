@@ -47,7 +47,7 @@ class ApkInstaller private constructor(private val context: Context) {
                 ?: throw ApkInstallException("Failed to parse APK: $apkFilePath")
 
             // 2. Copy APK to VM's app directory
-            val apkDir = File(VirtualFileSystem.getApkDir(vmId, parsed.packageName))
+            val apkDir = VirtualFileSystem.getApkDir(vmId, parsed.packageName)
             if (!apkDir.exists()) apkDir.mkdirs()
 
             val destApk = File(apkDir, "base.apk")
@@ -70,9 +70,7 @@ class ApkInstaller private constructor(private val context: Context) {
             }
 
             // 3. Create data directory
-            val dataDir = File(
-                VirtualFileSystem.getAppDataDir(vmId, parsed.packageName)
-            )
+            val dataDir = VirtualFileSystem.getAppDataDir(vmId, parsed.packageName)
             if (!dataDir.exists()) dataDir.mkdirs()
 
             // Create standard sub-directories.
@@ -120,7 +118,7 @@ class ApkInstaller private constructor(private val context: Context) {
 
             // Remove APK directory.
             try {
-                val apkDir = File(VirtualFileSystem.getApkDir(vmId, packageName))
+                val apkDir = VirtualFileSystem.getApkDir(vmId, packageName)
                 if (apkDir.exists()) apkDir.deleteRecursively()
             } catch (e: Exception) {
                 // Best-effort cleanup.
@@ -128,9 +126,7 @@ class ApkInstaller private constructor(private val context: Context) {
 
             // Remove data directory.
             try {
-                val dataDir = File(
-                    VirtualFileSystem.getAppDataDir(vmId, packageName)
-                )
+                val dataDir = VirtualFileSystem.getAppDataDir(vmId, packageName)
                 if (dataDir.exists()) dataDir.deleteRecursively()
             } catch (e: Exception) {
                 // Best-effort cleanup.
@@ -192,6 +188,8 @@ class ApkInstaller private constructor(private val context: Context) {
                     "ApkInstaller is not initialised. " +
                             "Call ApkInstaller.init(context) first."
                 )
+
+        fun get(): ApkInstaller = instance
     }
 }
 

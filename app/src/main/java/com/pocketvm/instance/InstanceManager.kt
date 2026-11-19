@@ -293,5 +293,7 @@ class InstanceManager private constructor(context: Context) {
                 ?: throw IllegalStateException(
                     "InstanceManager is not initialised. Call InstanceManager.init(context) first."
                 )
+
+        fun get(): InstanceManager = instance
     }
 }

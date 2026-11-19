@@ -59,7 +59,8 @@ class ApkInstallerViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             _installProgress.value = "Cloning $packageName..."
             try {
-                HostAppScanner.cloneToVm(getApplication(), vmId, packageName)
+                val app: Application = getApplication()
+                HostAppScanner.cloneToVm(app, vmId, packageName)
                 _installProgress.value = "Installed successfully!"
             } catch (e: Exception) {
                 _installProgress.value = "Failed: ${e.message}"

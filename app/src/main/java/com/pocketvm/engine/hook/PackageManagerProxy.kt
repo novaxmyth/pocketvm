@@ -9,6 +9,7 @@ import android.os.Binder
 import android.util.Log
 import com.pocketvm.engine.VirtualCore
 import com.pocketvm.engine.component.ComponentResolver
+import kotlinx.coroutines.runBlocking
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -23,14 +24,14 @@ import java.lang.reflect.Method
 class PackageManagerProxy(
     private val core: VirtualCore,
     private val original: Any,
-    private val vmId: Long
+    private val vmId: String
 ) : InvocationHandler {
 
     companion object {
         private const val TAG = "PMProxy"
     }
 
-    private val componentResolver: ComponentResolver by lazy { ComponentResolver(core) }
+    private val componentResolver: ComponentResolver by lazy { ComponentResolver.get() }
 
     @Throws(Throwable::class)
     override fun invoke(proxy: Any?, method: Method, args: Array<out Any?>?): Any? {
@@ -49,13 +50,6 @@ class PackageManagerProxy(
 
     // ── getPackageInfo ───────────────────────────────────────────────────
 
-    /**
-     * Signature: `PackageInfo getPackageInfo(String packageName, int flags, int userId)`
-     *
-     * When a guest process asks for a package that is installed inside the VM,
-     * we build and return synthetic [PackageInfo] from our records. Otherwise
-     * we fall through to the real PM.
-     */
     private fun handleGetPackageInfo(method: Method, args: Array<out Any?>?): Any? {
         if (args == null) return invokeOriginal(method, args)
 
@@ -66,7 +60,7 @@ class PackageManagerProxy(
             ?: return invokeOriginal(method, args)
 
         val installedAppDao = core.getDatabase().installedAppDao()
-        val app = installedAppDao.getByPackage(vmId, packageName)
+        val app = installedAppDao.getByPackageSync(vmId, packageName)
             ?: return invokeOriginal(method, args)
 
         val pi = PackageInfo().apply {
@@ -84,9 +78,6 @@ class PackageManagerProxy(
 
     // ── getApplicationInfo ───────────────────────────────────────────────
 
-    /**
-     * Signature: `ApplicationInfo getApplicationInfo(String packageName, int flags, int userId)`
-     */
     private fun handleGetApplicationInfo(method: Method, args: Array<out Any?>?): Any? {
         if (args == null) return invokeOriginal(method, args)
 
@@ -97,7 +88,7 @@ class PackageManagerProxy(
             ?: return invokeOriginal(method, args)
 
         val installedAppDao = core.getDatabase().installedAppDao()
-        val app = installedAppDao.getByPackage(vmId, packageName)
+        val app = installedAppDao.getByPackageSync(vmId, packageName)
             ?: return invokeOriginal(method, args)
 
         Log.d(TAG, "getApplicationInfo → guest: ${app.packageName}")
@@ -106,9 +97,6 @@ class PackageManagerProxy(
 
     // ── resolveIntent ────────────────────────────────────────────────────
 
-    /**
-     * Signature: `ResolveInfo resolveIntent(Intent intent, String resolvedType, int flags, int userId)`
-     */
     private fun handleResolveIntent(method: Method, args: Array<out Any?>?): Any? {
         if (args == null) return invokeOriginal(method, args)
 
@@ -118,10 +106,19 @@ class PackageManagerProxy(
         val intent = args.firstOrNull { it is Intent } as? Intent
             ?: return invokeOriginal(method, args)
 
-        val resolved = componentResolver.resolveActivity(vmId, intent)
+        val resolved = runBlocking {
+            componentResolver.resolveActivity(core.getContext(), vmId, intent, core.getDatabase())
+        }
         if (resolved != null) {
-            Log.d(TAG, "resolveIntent → guest: ${resolved.activityInfo?.name}")
-            return resolved
+            val resolveInfo = ResolveInfo().apply {
+                activityInfo = ActivityInfo().apply {
+                    this.packageName = resolved.packageName
+                    this.name = resolved.className
+                    this.applicationInfo = buildApplicationInfo(resolved.packageName, null, null, null)
+                }
+            }
+            Log.d(TAG, "resolveIntent → guest: ${resolved.className}")
+            return resolveInfo
         }
 
         return invokeOriginal(method, args)
@@ -129,11 +126,6 @@ class PackageManagerProxy(
 
     // ── queryIntentActivities ────────────────────────────────────────────
 
-    /**
-     * Signature: `ParceledListSlice queryIntentActivities(Intent intent, String resolvedType, int flags, int userId)`
-     *
-     * We return a plain list; the caller (ApplicationPackageManager) usually wraps it.
-     */
     @Suppress("UNCHECKED_CAST")
     private fun handleQueryIntentActivities(method: Method, args: Array<out Any?>?): Any? {
         if (args == null) return invokeOriginal(method, args)
@@ -144,8 +136,19 @@ class PackageManagerProxy(
         val intent = args.firstOrNull { it is Intent } as? Intent
             ?: return invokeOriginal(method, args)
 
-        val guestResults = componentResolver.queryActivities(vmId, intent)
-        if (guestResults.isNotEmpty()) {
+        val resolvedList = runBlocking {
+            componentResolver.queryActivities(core.getContext(), vmId, intent, core.getDatabase())
+        }
+        if (resolvedList.isNotEmpty()) {
+            val guestResults = resolvedList.map { res ->
+                ResolveInfo().apply {
+                    activityInfo = ActivityInfo().apply {
+                        this.packageName = res.packageName
+                        this.name = res.className
+                        this.applicationInfo = buildApplicationInfo(res.packageName, null, null, null)
+                    }
+                }
+            }
             Log.d(TAG, "queryIntentActivities → guest: ${guestResults.size} results")
 
             // Try to wrap in ParceledListSlice for AIDL compat
@@ -163,9 +166,6 @@ class PackageManagerProxy(
 
     // ── helpers ──────────────────────────────────────────────────────────
 
-    /**
-     * Builds a synthetic [ApplicationInfo] for a guest package.
-     */
     private fun buildApplicationInfo(
         packageName: String,
         label: String?,

@@ -50,6 +50,12 @@ interface InstalledAppDao {
     @Query("SELECT * FROM installed_apps WHERE vmId = :vmId AND packageName = :packageName")
     suspend fun getByPackage(vmId: String, packageName: String): InstalledApp?
 
+    @Query("SELECT * FROM installed_apps WHERE vmId = :vmId AND packageName = :packageName")
+    fun getByPackageSync(vmId: String, packageName: String): InstalledApp?
+
+    @Query("SELECT * FROM installed_apps WHERE vmId = :vmId ORDER BY appName ASC")
+    fun getByVmSync(vmId: String): List<InstalledApp>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(app: InstalledApp)
 

@@ -37,7 +37,8 @@ class VirtualPhoneViewModel(
     fun launchApp(packageName: String) {
         viewModelScope.launch {
             try {
-                AppLauncher.get().launchApp(getApplication(), vmId, packageName)
+                val app: Application = getApplication()
+                AppLauncher.get().launchApp(app, vmId, packageName)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

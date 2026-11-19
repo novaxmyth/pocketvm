@@ -82,12 +82,18 @@ class DeviceIdentityManager private constructor(context: Context) {
 
             if (!buildPropFile.exists()) return@withContext emptyMap()
 
-            buildPropFile.readLines()
-                .filter { it.isNotBlank() && !it.trimStart().startsWith('#') && '=' in it }
-                .associate { line ->
-                    val idx = line.indexOf('=')
-                    line.substring(0, idx).trim() to line.substring(idx + 1).trim()
+            val lines = buildPropFile.readLines()
+            val map = mutableMapOf<String, String>()
+            for (line in lines) {
+                val trimmed = line.trim()
+                if (trimmed.isNotEmpty() && !trimmed.startsWith('#') && trimmed.contains('=')) {
+                    val idx = trimmed.indexOf('=')
+                    val key = trimmed.substring(0, idx).trim()
+                    val value = trimmed.substring(idx + 1).trim()
+                    map[key] = value
                 }
+            }
+            map
         }
 
     /**
@@ -202,6 +208,8 @@ class DeviceIdentityManager private constructor(context: Context) {
                     "DeviceIdentityManager is not initialised. " +
                             "Call DeviceIdentityManager.init(context) first."
                 )
+
+        fun get(): DeviceIdentityManager = instance
     }
 }
 

@@ -121,11 +121,7 @@ object HostAppScanner {
                 // Split APKs share the same packageName; we simply copy them
                 // into the VM's apk directory.
                 if (parsed != null) {
-                    val apkDir = java.io.File(
-                        com.pocketvm.engine.io.VirtualFileSystem.getApkDir(
-                            vmId, packageName
-                        )
-                    )
+                    val apkDir = com.pocketvm.engine.io.VirtualFileSystem.getApkDir(vmId, packageName)
                     val dest = java.io.File(apkDir, java.io.File(splitPath).name)
                     java.io.File(splitPath).copyTo(dest, overwrite = true)
                 }

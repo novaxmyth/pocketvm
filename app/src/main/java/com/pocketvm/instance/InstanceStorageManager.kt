@@ -150,6 +150,8 @@ class InstanceStorageManager private constructor() {
         private const val SHARED_DIR = "Shared"
 
         val instance: InstanceStorageManager by lazy { InstanceStorageManager() }
+
+        fun get(): InstanceStorageManager = instance
     }
 }
 

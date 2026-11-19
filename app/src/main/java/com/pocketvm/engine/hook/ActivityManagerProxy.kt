@@ -24,7 +24,7 @@ import java.lang.reflect.Method
 class ActivityManagerProxy(
     private val core: VirtualCore,
     private val original: Any,
-    private val vmId: Long
+    private val vmId: String
 ) : InvocationHandler {
 
     companion object {
@@ -98,7 +98,8 @@ class ActivityManagerProxy(
         val stubIntent = StubActivity.createLaunchIntent(
             core.getContext(),
             vmId,
-            targetComponent,
+            targetPackage ?: "",
+            targetComponent?.className ?: "",
             originalIntent
         )
 
