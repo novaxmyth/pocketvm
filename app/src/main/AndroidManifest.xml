@@ -1,73 +1,491 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <application
-        android:allowBackup="true"
+        android:name=".ui.PocketVmApp"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PocketVM"
-        android:largeHeap="true"
-        android:hardwareAccelerated="true"
-        android:requestLegacyExternalStorage="true">
+        android:theme="@style/Theme.PocketVM">
 
-        <!-- Host Main Activity: VM Dashboard & Management -->
+        <!-- Main Activity (Compose) -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.PocketVM">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Virtual Phone Activity: Fullscreen Interactive Virtual OS -->
-        <activity
-            android:name=".ui.vm.VirtualPhoneActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.PocketVM.Fullscreen" />
-
-        <!-- Shared Storage Activity -->
-        <activity
-            android:name=".ui.SharedStorageActivity"
-            android:exported="false"
-            android:label="@string/title_shared_storage" />
-
-        <!-- Diagnostics Activity -->
-        <activity
-            android:name=".ui.DiagnosticsActivity"
-            android:exported="false"
-            android:label="@string/title_diagnostics" />
-
-        <!-- Background VM Keep-Alive Service -->
+        <!-- Foreground Service for VM lifecycle -->
         <service
-            android:name=".service.VmBackgroundService"
+            android:name=".service.VmForegroundService"
             android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="virtual_machine_execution" />
-        </service>
+            android:foregroundServiceType="specialUse" />
 
-        <!-- Floating Window (PiP) Overlay Service -->
+        <!-- Floating Window (V-Ball) Service -->
         <service
-            android:name=".service.VirtualFloatingService"
+            android:name=".service.FloatingWindowService"
             android:exported="false" />
 
-    </application>
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- 50 Stub Activities for hosting guest app Activities    -->
+        <!-- Each runs in :vm process with unique task affinity     -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <activity
+            android:name=".engine.stub.StubActivity$Stub0"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub0"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub1"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub1"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub2"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub2"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub3"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub3"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub4"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub4"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub5"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub5"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub6"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub6"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub7"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub7"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub8"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub8"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub9"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub9"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub10"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub10"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub11"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub11"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub12"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub12"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub13"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub13"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub14"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub14"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub15"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub15"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub16"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub16"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub17"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub17"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub18"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub18"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub19"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub19"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub20"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub20"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub21"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub21"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub22"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub22"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub23"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub23"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub24"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub24"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub25"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub25"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub26"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub26"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub27"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub27"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub28"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub28"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub29"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub29"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub30"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub30"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub31"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub31"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub32"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub32"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub33"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub33"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub34"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub34"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub35"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub35"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub36"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub36"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub37"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub37"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub38"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub38"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub39"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub39"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub40"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub40"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub41"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub41"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub42"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub42"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub43"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub43"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub44"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub44"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub45"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub45"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub46"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub46"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub47"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub47"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub48"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub48"
+            android:process=":vm" />
+        <activity
+            android:name=".engine.stub.StubActivity$Stub49"
+            android:exported="false"
+            android:launchMode="standard"
+            android:taskAffinity=".stub49"
+            android:process=":vm" />
 
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- 20 Stub Services for hosting guest app Services        -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <service
+            android:name=".engine.stub.StubService$StubSvc0"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc1"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc2"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc3"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc4"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc5"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc6"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc7"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc8"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc9"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc10"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc11"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc12"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc13"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc14"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc15"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc16"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc17"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc18"
+            android:exported="false"
+            android:process=":vm" />
+        <service
+            android:name=".engine.stub.StubService$StubSvc19"
+            android:exported="false"
+            android:process=":vm" />
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- 10 Stub ContentProviders for guest ContentProviders    -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider0"
+            android:authorities="com.pocketvm.vprovider0"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider1"
+            android:authorities="com.pocketvm.vprovider1"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider2"
+            android:authorities="com.pocketvm.vprovider2"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider3"
+            android:authorities="com.pocketvm.vprovider3"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider4"
+            android:authorities="com.pocketvm.vprovider4"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider5"
+            android:authorities="com.pocketvm.vprovider5"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider6"
+            android:authorities="com.pocketvm.vprovider6"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider7"
+            android:authorities="com.pocketvm.vprovider7"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider8"
+            android:authorities="com.pocketvm.vprovider8"
+            android:exported="false"
+            android:process=":vm" />
+        <provider
+            android:name=".engine.stub.StubContentProvider$StubProvider9"
+            android:authorities="com.pocketvm.vprovider9"
+            android:exported="false"
+            android:process=":vm" />
+
+    </application>
 </manifest>

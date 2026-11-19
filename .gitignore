@@ -7,7 +7,13 @@
 /captures
 .externalNativeBuild
 .cxx
-app/build
-app/src/main/assets/runtime.zip
-app/src/main/assets/runtime_info.json
-ci/.engine-cache
+local.properties
+/app/build
+/app/release
+*.apk
+*.aab
+
+# Keystore & Secrets
+keystore.properties
+*.keystore
+*.jks

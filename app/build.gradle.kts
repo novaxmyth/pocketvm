@@ -1,48 +1,27 @@
-import java.util.Properties
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-}
-
-val keystoreProps = Properties().apply {
-    val f = rootProject.file("keystore.properties")
-    if (f.exists()) f.inputStream().use { load(it) }
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp")
 }
 
 android {
-    namespace = "com.antidaze.pocketvm"
+    namespace = "com.pocketvm"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.antidaze.pocketvm"
+        applicationId = "com.pocketvm"
         minSdk = 26
-        targetSdk = 34
-        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 200
-        versionName = "2.0.0"
-
+        targetSdk = 35
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 300
+        versionName = "3.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        create("release") {
-            val ksFile = rootProject.file(
-                keystoreProps.getProperty("storeFile", "keystore/pocketvm-release.keystore")
-            ).takeIf { it.exists() }
-            if (ksFile != null) {
-                storeFile = ksFile
-                storePassword = keystoreProps.getProperty("storePassword", "")
-                keyAlias = keystoreProps.getProperty("keyAlias", "")
-                keyPassword = keystoreProps.getProperty("keyPassword", "")
-            }
-        }
-    }
-    val hasReleaseSigning = signingConfigs.getByName("release").storeFile != null
-
     buildTypes {
         release {
-            isMinifyEnabled = false
-            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             applicationIdSuffix = ".debug"
@@ -57,19 +36,44 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    buildFeatures {
+        compose = true
+    }
     lint {
         abortOnError = false
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.cardview:cardview:1.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
+    // Core
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.activity:activity-compose:1.9.3")
+
+    // Compose
+    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.navigation:navigation-compose:2.8.5")
+
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
+    // Debug
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

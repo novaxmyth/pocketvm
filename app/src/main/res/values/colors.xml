@@ -1,46 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand & Accent Colors -->
-    <color name="primary">#00E5FF</color>
-    <color name="primary_variant">#00B0FF</color>
-    <color name="on_primary">#001018</color>
-    <color name="secondary">#7C4DFF</color>
-    <color name="secondary_variant">#651FFF</color>
-    <color name="on_secondary">#FFFFFF</color>
-
-    <!-- Dark Cyber / AMOLED Backgrounds -->
-    <color name="ic_launcher_background">#0D1117</color>
-    <color name="background">#0D1117</color>
-    <color name="surface">#161B22</color>
-    <color name="surface_variant">#21262D</color>
-    <color name="surface_card">#1A202C</color>
-    <color name="surface_elevated">#2D3748</color>
-    <color name="border_color">#30363D</color>
-
-    <!-- Text Colors -->
-    <color name="text_primary">#F0F6FC</color>
-    <color name="text_secondary">#8B949E</color>
-    <color name="text_muted">#484F58</color>
-    <color name="text_accent">#58A6FF</color>
-
-    <!-- Functional States -->
-    <color name="status_running">#3FB950</color>
-    <color name="status_stopped">#8B949E</color>
-    <color name="status_paused">#D29922</color>
-    <color name="status_error">#F85149</color>
-    <color name="root_active">#FF3366</color>
-
-    <!-- Virtual Phone OS Colors -->
-    <color name="vm_status_bar">#0A0E14</color>
-    <color name="vm_nav_bar">#0A0E14</color>
-    <color name="vm_desktop_bg">#090D16</color>
-    <color name="vm_quick_settings_bg">#1A2234</color>
-    <color name="vm_accent">#00F0FF</color>
-    <color name="vm_app_icon_bg">#252E42</color>
-
-    <!-- System Translucent -->
-    <color name="scrim_black_50">#80000000</color>
-    <color name="scrim_black_80">#CC000000</color>
-    <color name="white">#FFFFFF</color>
-    <color name="black">#000000</color>
+    <color name="primary">#FF00E5FF</color>
+    <color name="primary_dark">#FF00B8D4</color>
+    <color name="secondary">#FFE040FB</color>
+    <color name="secondary_dark">#FFAA00FF</color>
+    <color name="tertiary">#FF76FF03</color>
+    <color name="background">#FF0A0E14</color>
+    <color name="surface">#FF141B24</color>
+    <color name="surface_variant">#FF1E2832</color>
+    <color name="on_background">#FFE8EAED</color>
+    <color name="on_surface">#FFDADCE0</color>
+    <color name="error">#FFFF5252</color>
+    <color name="warning">#FFFFD740</color>
+    <color name="success">#FF69F0AE</color>
 </resources>

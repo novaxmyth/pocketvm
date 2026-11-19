@@ -1,19 +1,28 @@
-<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- monitor body -->
+
+    <!-- Phone body -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M28,32 h52 a6,6 0 0 1 6,6 v28 a6,6 0 0 1 -6,6 h-20 l6,10 h-24 l6,-10 h-20 a6,6 0 0 1 -6,-6 v-28 a6,6 0 0 1 6,-6 z" />
-    <!-- screen -->
+        android:fillColor="#00E5FF"
+        android:pathData="M36,22 L72,22 C74.2,22 76,23.8 76,26 L76,82 C76,84.2 74.2,86 72,86 L36,86 C33.8,86 32,84.2 32,82 L32,26 C32,23.8 33.8,22 36,22 Z" />
+
+    <!-- Screen area (dark inset) -->
     <path
-        android:fillColor="#14213D"
-        android:pathData="M30,38 h48 v28 h-48 z" />
-    <!-- play triangle -->
+        android:fillColor="#0A0E14"
+        android:pathData="M36,28 L72,28 L72,78 L36,78 Z" />
+
+    <!-- VM symbol on screen (play triangle) -->
     <path
-        android:fillColor="#4DB6AC"
-        android:pathData="M48,44 l16,8 -16,8 z" />
+        android:fillColor="#76FF03"
+        android:pathData="M49,44 L49,64 L65,54 Z" />
+
+    <!-- Bottom home indicator -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M48,82 L60,82"
+        android:strokeWidth="2"
+        android:strokeColor="#00E5FF" />
 </vector>

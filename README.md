@@ -1,138 +1,99 @@
-# PocketVM 2.0
+# PocketVM 3.0
 
-> **High-Performance Native Android Virtual Instance Host**  
-> Run isolated, independent Android virtual instances inside a normal, unprivileged Android application — no root required.
+> **Real App Virtualization Engine for Android**
+> Run isolated, independent Android app containers inside a normal Android app — no root required.
 
 [![Build PocketVM APK](https://github.com/novaxmyth/pocketvm/actions/workflows/build.yml/badge.svg)](https://github.com/novaxmyth/pocketvm/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/novaxmyth/pocketvm?color=00E5FF)](https://github.com/novaxmyth/pocketvm/releases)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 ---
 
-## Overview
+## What is PocketVM?
 
-PocketVM is an open-source Android virtualization host inspired by **VPhoneGaGa**, **VMOS**, and **VirtualMaster**. It allows you to create, manage, and run complete isolated Android instances directly on your phone without rooting your device.
+PocketVM is an open-source Android virtualization engine that creates isolated containers for running apps inside your app. Unlike the old version which was a UI-only simulation, **PocketVM 3.0 uses real app virtualization** — the same container-based approach used by VPhoneGaGa, VMOS, and VirtualApp.
 
-Unlike previous attempts that relied on slow, battery-draining QEMU TCG software emulation and heavy 800+ MB multi-gigabyte disk images, **PocketVM 2.0** utilizes a lightweight, zero-overhead native container architecture. It executes applications at **100% native hardware speed (60–120 FPS)** with sub-second boot times and minimal battery consumption.
+Apps are loaded via `DexClassLoader`, framework services are intercepted with Java Dynamic Proxies, and each guest app runs in a sandboxed process with its own spoofed device identity.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                       Host Android                          │
-│                                                             │
-│   ┌─────────────────────────────────────────────────────┐   │
-│   │               PocketVM Application                  │   │
-│   │                                                     │   │
-│   │   ┌─────────────────────────────────────────────┐   │   │
-│   │   │            PocketVM OS Launcher             │   │   │
-│   │   │   • Dynamic Status Bar (Clock, WiFi, Batt)  │   │   │
-│   │   │   • Quick Settings Pull-Down Shade          │   │   │
-│   │   │   • App Grid & Search Widget                │   │   │
-│   │   │   • Nav Bar (Back, Home, Recents Switcher)  │   │   │
-│   │   │   • Floating Assistant Ball (V-Ball)        │   │   │
-│   │   └──────────────────────┬──────────────────────┘   │   │
-│   │                          │                          │   │
-│   │   ┌──────────────────────▼──────────────────────┐   │   │
-│   │   │         Virtual Container Engine            │   │   │
-│   │   │   • Virtual Package Manager (VPM)           │   │   │
-│   │   │   • Sandboxed Storage (/data/data, /sdcard) │   │   │
-│   │   │   • Virtual System Properties (getprop)     │   │   │
-│   │   │   • Virtual Shell (Toybox/Busybox + SU)     │   │   │
-│   │   │   • Mock GPS & Battery Sensor Provider      │   │   │
-│   │   └──────────────────────┬──────────────────────┘   │   │
-│   │                          │                          │   │
-│   │   ┌──────────────────────▼──────────────────────┐   │   │
-│   │   │          Isolated VM Instances              │   │   │
-│   │   │   [Instance 1: Pixel 8] [Instance 2: S24]   │   │   │
-│   │   └─────────────────────────────────────────────┘   │   │
-│   └─────────────────────────────────────────────────────┘   │
-│                              │                              │
-│               Direct Hardware GPU Acceleration              │
-│               Native ARM64 / x86_64 CPU Execution           │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                    Host Android Device                    │
+│                                                          │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │                PocketVM Host App                    │  │
+│  │                                                    │  │
+│  │  ┌─────────────────────────────────────────────┐   │  │
+│  │  │          Dashboard (Jetpack Compose)         │   │  │
+│  │  │  [VM 1: Pixel 8] [VM 2: S24] [VM 3: AOSP]  │   │  │
+│  │  └──────────────────┬──────────────────────────┘   │  │
+│  │                     │                              │  │
+│  │  ┌──────────────────▼──────────────────────────┐   │  │
+│  │  │            Virtual Engine Core               │   │  │
+│  │  │  • ServiceHookManager (AMS/PMS proxy)        │   │  │
+│  │  │  • 50 Stub Activities (manifest pool)        │   │  │
+│  │  │  • 20 Stub Services + 10 Stub Providers      │   │  │
+│  │  │  • DexClassLoader (guest APK loading)        │   │  │
+│  │  │  • VProcessManager (process tracking)        │   │  │
+│  │  └──────────────────┬──────────────────────────┘   │  │
+│  │                     │                              │  │
+│  │  ┌──────────────────▼──────────────────────────┐   │  │
+│  │  │          Sandboxed VM Instances               │   │  │
+│  │  │  /vms/{id}/data/data/{pkg}/  (app data)      │   │  │
+│  │  │  /vms/{id}/data/app/{pkg}/   (APKs)          │   │  │
+│  │  │  /vms/{id}/sdcard/           (virtual SD)    │   │  │
+│  │  │  /vms/{id}/system/build.prop (identity)      │   │  │
+│  │  └─────────────────────────────────────────────┘   │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Key Features
+## Features
 
-### ⚡ 100% Native Performance (Zero Emulation Lag)
-- Guest applications run on bare-metal ARM64/x86_64 using the Android ART runtime.
-- Direct hardware-accelerated GPU rendering (Vulkan & EGL) up to 120Hz.
-- Instant cold boot in under **200 milliseconds** — no waiting 20 minutes for a virtual kernel to boot.
+### 🔧 Real App Virtualization
+- **Dynamic APK Loading** via `DexClassLoader` — guest apps are loaded without installing on the host
+- **Framework Service Hooking** — `IActivityManager` and `IPackageManager` intercepted via Java Dynamic Proxy
+- **80 Stub Components** — 50 Activities + 20 Services + 10 ContentProviders pre-declared in manifest
+- **Process Isolation** — guest apps run in separate `:vm` process
 
-### 📱 Complete "PocketVM OS" Virtual Phone UI
-- **Interactive Android Desktop**: Full launcher with time/date widget, real-time app search, app drawer, and favorites dock.
-- **Dynamic Status Bar**: Real-time clock, WiFi status, battery percentage, charging indicator, and `#` root icon.
-- **Pull-Down Quick Settings**: Toggle WiFi, Virtual Root, Mock Location, Auto-Rotate, and Display Brightness.
-- **3D Task Switcher (Recents)**: Multi-tasking card view to switch between active apps or dismiss tasks.
-- **System Navigation Bar**: Back, Home, and Recents navigation.
+### 🆔 Per-Instance Device Identity Spoofing
+- Unique IMEI, Android ID, serial number, MAC address per VM
+- Full `build.prop` generation (model, manufacturer, fingerprint)
+- Pre-built profiles: Pixel 8 Pro, Galaxy S24 Ultra, OnePlus 12, AOSP Generic
 
-### 🪟 Picture-in-Picture (PiP) Floating Window Mode
-- Just like VPhoneGaGa, shrink the virtual phone into a movable, resizable floating overlay on top of any host application.
-- Multitask between your host phone and your virtual phone simultaneously.
+### 📦 App Management
+- **1-Tap Host App Cloning** — clone any installed app into a VM with isolated data
+- **APK File Installation** — install any `.apk` from storage
+- **Dual Accounts** — run two WhatsApp, Telegram, etc. side by side
 
-### 📦 APK Installer & Host App Cloner
-- **1-Tap App Cloner**: Browse apps already installed on your host phone and clone them into the virtual machine with clean, isolated data.
-- **APK Package Installer**: Install any `.apk` file from host storage or shared folders.
-- **Dual Accounts**: Run two instances of WhatsApp, Telegram, Discord, or games side by side.
+### 🛡️ Virtual Root (SU)
+- Toggle root on/off per VM — completely safe, host stays unrooted
+- Simulated `/system/xbin/su` with uid=0 elevation inside container
 
-### 🛡️ Virtual Root (SU) & Magisk Simulator
-- Toggle Root access on or off per VM instance with a single tap.
-- Provides `/system/xbin/su` with privilege elevation (`uid=0`) inside the Virtual Shell.
-- Completely safe: requires **zero root privileges on the host device**.
+### 🛰️ Mock GPS & Sensors
+- Inject mock GPS coordinates per VM
+- Preset locations (San Francisco, Tokyo, London, Paris, New York, Sydney)
+- Custom latitude/longitude input
 
-### 🛰️ Mock Sensors & GPS Lab
-- Built-in Mock GPS location injection with one-tap presets (San Francisco, Tokyo, London, Paris, New York) or custom latitude/longitude.
-- Mock Battery Simulator: customize virtual battery level (1–100%) and charging status.
-
-### 💻 Built-in Virtual Terminal Emulator
-- Colorized ANSI terminal console.
-- Emulates Busybox/Toybox commands: `ls`, `cd`, `pwd`, `cat`, `touch`, `mkdir`, `rm`, `cp`, `mv`, `uname`, `whoami`, `id`, `df`, `free`, `ps`, `top`, `pm`, `am`, `getprop`, `setprop`, `su`.
-
-### 📁 Shared Storage Bridge
-- Seamless file exchange between Host and VM: files placed in `/sdcard/PocketVM/Shared` are immediately available inside all VMs at `/sdcard/Shared/`.
-
-### 🔄 Multi-Instance Management
-- Create multiple independent virtual machines:
-  - **Google Pixel 8 Pro** (Android 14)
-  - **Samsung Galaxy S24 Ultra** (Android 14)
-  - **Gaming Sandbox** (120Hz, Rooted)
-  - **Privacy Sandbox** (Clean AOSP, Isolated)
-- Custom RAM allocation (1 GB, 2 GB, 3 GB, 4 GB).
-- Custom resolutions (1080x2400 FHD+, 1080x1920 FHD, 720x1280 HD, custom DPI).
-- One-click VM cloning, backup (`.pvm`), and restore.
+### 🎨 Modern UI
+- **Jetpack Compose** + **Material 3** — dark cyberpunk theme
+- Simulated phone experience with status bar and navigation bar
+- Floating V-Ball overlay for quick VM controls
 
 ---
 
-## Built-in System Applications
+## Tech Stack
 
-Every newly created PocketVM instance includes 9 built-in virtual apps:
-
-| App | Package | Description |
-|---|---|---|
-| ⚙️ **Settings** | `com.pocketvm.settings` | Configure VM hardware, resolution, DPI, Root access, and clean cache. |
-| 📁 **Files** | `com.pocketvm.files` | Browse virtual storage (`/sdcard/`, `/shared/`), install APKs, import/export files. |
-| 🌐 **Browser** | `com.pocketvm.browser` | Sandboxed web browser with tabbed navigation and search. |
-| 💻 **Terminal** | `com.pocketvm.terminal` | Interactive Linux/Android shell with command shortcuts and root toggle. |
-| 📦 **App Center** | `com.pocketvm.installer` | Clone apps from host phone or manage installed VM packages. |
-| 🛰️ **Sensors & GPS** | `com.pocketvm.sensor` | Mock GPS coordinates provider and battery simulator. |
-| 🛡️ **Superuser** | `com.pocketvm.su` | Root permission controller and Magisk mock verification. |
-| 📷 **Camera Sim** | `com.pocketvm.camera` | Virtual camera test pattern feed with SMPTE color bars and timecode. |
-| ℹ️ **Device Info** | `com.pocketvm.deviceinfo` | Hardware inspection, CPU cores, RAM, and GPU capabilities. |
-
----
-
-## Floating Assistant Ball (V-Ball)
-
-While inside the Virtual Phone, a floating assistant ball is docked to the edge of the screen:
-- Drag to reposition anywhere.
-- Tap to access the quick menu:
-  - 🏠 **Return to Host Dashboard**
-  - 🪟 **Minimize to Floating Window (PiP)**
-  - 📸 **Take VM Screenshot**
-  - 🔄 **Rotate Screen (Portrait / Landscape)**
-  - ⚡ **Soft Reboot VM**
-  - ⏹️ **Power Off VM**
+| Component | Technology |
+|-----------|-----------|
+| Language | Kotlin |
+| UI | Jetpack Compose + Material 3 |
+| Architecture | MVVM (ViewModel + StateFlow) |
+| Database | Room |
+| Navigation | Navigation Compose |
+| Hooking | Java Reflection + Dynamic Proxy |
+| APK Loading | DexClassLoader |
+| Build | Gradle KTS, compileSdk 35 |
 
 ---
 
@@ -140,23 +101,51 @@ While inside the Virtual Phone, a floating assistant ball is docked to the edge 
 
 ### Prerequisites
 - JDK 17 (Temurin recommended)
-- Android SDK 35 (compileSdk 35, minSdk 26, targetSdk 34)
+- Android SDK 35
 
-### Local Build
+### Build
 ```bash
-# Clone the repository
 git clone https://github.com/novaxmyth/pocketvm.git
 cd pocketvm
-
-# Build Signed Release APK
-./gradlew :app:assembleRelease
-
-# The output APK will be generated at:
-# app/build/outputs/apk/release/app-release.apk
+./gradlew :app:assembleDebug
+# Output: app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### Automated CI / CD
-Every push to `main` automatically triggers GitHub Actions (`.github/workflows/build.yml`), which builds both Debug and signed Release APKs and publishes them directly to **GitHub Releases** and **Actions Artifacts**.
+---
+
+## Limitations (Honest)
+
+- **No Google Play Services** — apps requiring GMS will not work unless microG is integrated
+- **Banking/Payment Apps** — apps with strong integrity checks (SafetyNet, Play Integrity) will detect the container
+- **Native-Heavy Games** — games with custom engines or anti-cheat may crash
+- **This is a container, not a full VM** — apps share the host kernel, there is no hardware virtualization
+- **Hidden API restrictions** — Android 9+ restricts reflection on hidden APIs; some hooks may fail on newer OS versions
+
+---
+
+## Project Structure
+
+```
+app/src/main/java/com/pocketvm/
+├── data/           # Room database, models, DAOs
+│   ├── model/      # VmInstance, InstalledApp, DeviceProfile, VmState
+│   └── db/         # PocketVmDatabase, DAOs, Converters
+├── engine/         # Virtualization engine core
+│   ├── hook/       # ServiceHookManager, AMS/PMS proxies
+│   ├── process/    # VProcessManager, StubActivityRecord
+│   ├── stub/       # StubActivity (×50), StubService (×20), StubContentProvider (×10)
+│   ├── component/  # ComponentResolver
+│   └── io/         # VirtualFileSystem
+├── instance/       # InstanceManager, InstanceStorageManager
+├── identity/       # DeviceIdentityManager, BuildPropGenerator, MockLocationProvider
+├── apps/           # ApkParser, ApkInstaller, HostAppScanner, AppLauncher
+├── ui/             # Jetpack Compose UI layer
+│   ├── theme/      # Color, Typography, Theme
+│   ├── screen/     # Dashboard, VirtualPhone, Settings, AppDrawer, ApkInstaller
+│   ├── component/  # VmInstanceCard, StatusBar, NavigationBar
+│   └── viewmodel/  # Dashboard, VirtualPhone, Settings ViewModels
+└── service/        # VmForegroundService, FloatingWindowService
+```
 
 ---
 

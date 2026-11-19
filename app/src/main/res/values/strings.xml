@@ -1,79 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">PocketVM</string>
-    <string name="app_tagline">Native Android Virtual Instance Host</string>
-
-    <!-- Navigation & Titles -->
-    <string name="nav_vms">Virtual Machines</string>
-    <string name="nav_shared">Shared Storage</string>
-    <string name="nav_diagnostics">Diagnostics</string>
-    <string name="title_create_vm">Create Virtual Machine</string>
-    <string name="title_vm_settings">VM Settings</string>
-    <string name="title_shared_storage">Host-Guest Shared Storage</string>
-    <string name="title_diagnostics">Engine &amp; System Diagnostics</string>
-    <string name="title_cloner">Clone App from Host</string>
-    <string name="title_apk_installer">APK Package Installer</string>
-
-    <!-- VM Status -->
-    <string name="status_running">Running</string>
-    <string name="status_stopped">Stopped</string>
-    <string name="status_starting">Booting VM…</string>
-    <string name="status_paused">Suspended</string>
-
-    <!-- Actions -->
-    <string name="action_start">Boot</string>
-    <string name="action_open">Open</string>
-    <string name="action_stop">Stop</string>
-    <string name="action_restart">Restart</string>
-    <string name="action_clone">Clone VM</string>
-    <string name="action_backup">Backup (.pvm)</string>
-    <string name="action_delete">Delete</string>
-    <string name="action_create">Create Instance</string>
-    <string name="action_cancel">Cancel</string>
-    <string name="action_save">Save Changes</string>
-    <string name="action_install">Install</string>
-    <string name="action_uninstall">Uninstall</string>
-    <string name="action_launch">Launch</string>
-    <string name="action_extract_apk">Extract APK</string>
-    <string name="action_clean_cache">Clean Cache</string>
-    <string name="action_import_file">Import from Host</string>
-    <string name="action_export_file">Export to Host</string>
-    <string name="action_pip">Floating Window</string>
-    <string name="action_fullscreen">Fullscreen</string>
-    <string name="action_screenshot">Take Screenshot</string>
-
-    <!-- VM Presets -->
-    <string name="preset_pixel8">Google Pixel 8 Pro (Android 14)</string>
-    <string name="preset_s24">Samsung Galaxy S24 Ultra (Android 14)</string>
-    <string name="preset_gaming">Gaming Sandbox (120Hz, Rooted, Adreno)</string>
-    <string name="preset_clean">Privacy Lab (Clean AOSP, Isolated)</string>
-    <string name="preset_custom">Custom Hardware Profile</string>
-
-    <!-- System Apps inside VM -->
-    <string name="app_settings">Settings</string>
-    <string name="app_files">Files</string>
-    <string name="app_browser">Browser</string>
-    <string name="app_terminal">Terminal</string>
-    <string name="app_store">App Center</string>
-    <string name="app_sensor">Sensors &amp; GPS</string>
-    <string name="app_su">Superuser</string>
-    <string name="app_camera">Camera Sim</string>
-    <string name="app_device_info">Device Info</string>
-
-    <!-- VM UI Strings -->
-    <string name="search_apps">Search apps inside VM…</string>
-    <string name="no_vms_title">No Virtual Machines Created</string>
-    <string name="no_vms_desc">Tap + to create your first isolated Android virtual instance.</string>
-    <string name="vm_booting">PocketVM Initializing Virtual Hardware…</string>
-    <string name="vm_running_bg">PocketVM is running in the background</string>
-
-    <!-- Confirmations & Prompts -->
-    <string name="confirm_delete_vm">Are you sure you want to permanently delete \"%1$s\" and all its sandboxed data?</string>
-    <string name="confirm_stop_vm">Power off virtual machine \"%1$s\"?</string>
-    <string name="toast_vm_created">Virtual Machine \"%1$s\" created successfully.</string>
-    <string name="toast_vm_deleted">Virtual Machine deleted.</string>
-    <string name="toast_cloned">Cloned \"%1$s\" into Virtual Machine.</string>
-    <string name="toast_installed">Installed \"%1$s\" successfully.</string>
-    <string name="toast_root_toggled">Root privilege %1$s for this instance.</string>
-    <string name="toast_overlay_permission_needed">Please allow Display over other apps permission for Floating Window mode.</string>
+    <string name="vm_running">Running</string>
+    <string name="vm_stopped">Stopped</string>
+    <string name="vm_booting">Booting</string>
+    <string name="create_vm">Create Virtual Machine</string>
+    <string name="delete_vm">Delete Virtual Machine</string>
+    <string name="boot_vm">Boot</string>
+    <string name="stop_vm">Stop</string>
+    <string name="open_vm">Open</string>
+    <string name="settings">Settings</string>
+    <string name="install_apps">Install Apps</string>
+    <string name="clone_from_host">Clone from Host</string>
+    <string name="install_apk">Install APK File</string>
+    <string name="no_vms_title">No Virtual Machines</string>
+    <string name="no_vms_desc">Tap + to create your first isolated Android instance</string>
+    <string name="vm_notification_channel">PocketVM Instance</string>
+    <string name="vm_notification_desc">Shows when a virtual machine instance is running</string>
 </resources>
